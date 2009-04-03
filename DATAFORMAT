@@ -1,0 +1,205 @@
+### BASIC DATATYPES
+
+int8        = unsigned 8-bit integer
+int16       = unsigned 16-bit little-endian integer
+int24       = unsigned 24-bit little-endian integer
+int32       = signed 32-bit little-endian integer
+string      = pascal string (see STRINGS)
+md5sum      = 16 byte unsigned character array
+
+### FORMAT OF THE UDP PACKET
+
+-------v-------v-------v-------v-----------v----------------------------------
+TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
+-------+-------+-------+-------+-----------+----------------------------------
+md5sum  16      16      16      csum        keyed md5 checksum of the packet
+string  1       25      12      hostname    the client's hostname
+int8    1       1       1       hwostype    the client OS/hardware platform[1]
+int16   2       2       2       load1       the 1 min load-average (x 0.01)
+int8    1       1       1       cpu         cpu usage (0-255 = 0%-100%)
+int24   3       3       3       diskio      Disk i/o bandwidth (KB/s)
+int32   4       4       4       services    Running services[3]
+int16   2       2       2       uptime      System uptime[2]
+int24   3       3       3       ts          The Unix timestamp
+int8    1       1       1       nrun        the number of running processes
+int16   2       2       2       nproc       the number of processes
+int24   3       3       3       kmemfree    free RAM (x1 KB)
+int24   3       3       3       kswapfree   free Swap (x1 KB)
+int32   4       4       4       netin       network traffic in (x 1Kb/s)
+int32   4       4       4       netout      network traffic out (x1 Kb/s)
+int8    1       1       1       nmounts     number of mounts (max 4)
+mrec    0       168     72      mounts      mount record (* nmounts)
+int8    1       1       1       ntop        number of top records (max 8)
+toprec  0       408     138     tprocs      top process records (* ntop)
+int8    1       1       1       nports      number of port records (max 10)
+prec    0       60      48      ports       port records (* nports)
+int8    1       1       1       ntty        number of tty records (max 10)
+ttyrec  0       180     60      ttys        tty records (* ntty)
+int8    1       1       1       nhttp       number of http (mod_status) records
+httprec 0       208     60      http        http  vhost counter (* nhttp)
+int8    1       1       1       nxenvps     number of xenvps records
+xenvps  0       276     80      xenvps      xen vps records (* nxenvps)
+        ----    ----    ----
+        53      1376    519
+        
+Note that the number of written top records will be limited below 8 if there
+are less than 100 bytes left in the buffer, leaving guaranteed room for at
+least a number of port records and with a bit of luck some ttyrecs. The sizes
+marked as 'typical' are by far the most prevalent.
+
+
+[1] OS=bits 0-3             Hardware=bits 4-7
+       0000 = Linux         0000 = Intel X86
+       0001 = BSD           0001 = X86_64
+       0010 = Solaris       0010 = PowerPC
+       0011 = IRIX          0011 = MIPS
+       0100 = AIX           0100 = Sparc
+       0101 = HP/UX         0101 = Alpha
+       0110 = Apple OS X    0110 = PA-RISC
+       0111 = Windows       0111 = Other
+       1000 = Other
+       
+[2] Unit=bits 14-15         Value=bits 0-13
+         00 = Seconds
+         01 = Minutes
+         10 = Hours
+         11 = Days
+
+[3] Services (mask of 32)
+          0 = netload         16 = ldap
+          1 = ssh             17 = nis
+          2 = http            18 = bgp/ospf
+          3 = https           19 = inetd
+          4 = smtp            20 = dhcp
+          5 = imap            21 = firewall
+          6 = pop3            22 = syslog
+          7 = ftp             23 = printer
+          8 = nntp            24 = user1
+          9 = cron            25 = user2
+         10 = http-admin      26 = user3
+         11 = sqldb           27 = user4
+         12 = nfs             28 = user5
+         13 = cifs            39 = user6
+         14 = afs             30 = user7
+         15 = dns             31 = user8
+         
+
+### FORMAT OF THE DISK RECORD
+
+-------v-------v-------v-------v-----------v----------------------------------
+TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
+-------+-------+-------+-------+-----------+----------------------------------
+int8    1       1       1       headlock    0x4C if the record is written to
+int8    1       1       1       status      recorded host status
+int16   2       2       2       recsize     size of this record + taillock
+int32   4       4       4       localtime   timestamp when packet was received
+int16   2       2       2       ping10      avg 10 ping times (x 0.1 msec)
+int16   2       2       2       loss        packet loss (x 0.01%)
+int32   4       4       4       oflags      extra status flags
+
+  < normal udp packet format minus md5sum >
+  
+int8    1       1       1       taillock    0xC4 if the record is written to        
+
+### FORMAT OF AN <mrec> RECORD
+
+-------v-------v-------v-------v-----------v----------------------------------
+TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
+-------+-------+-------+-------+-----------+----------------------------------
+string  1       32      12      mountpoint  path of the volume's mountpoint
+string  1       8       4       fstype      filesystem type
+int16   2       2       2       usage       filesystem utilization (x 0.1%)
+        ----    ----    ----
+        4       42      18
+
+### FORMAT OF A <ttyrec> RECORD
+
+-------v-------v-------v-------v-----------v----------------------------------
+TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
+-------+-------+-------+-------+-----------+----------------------------------
+string  1       6       4       line        name of the tty line
+string  1       8       4       username    logged in user
+int32   4       4       4       host        remote host (0=local)
+        ----    ----    ----
+        6       18      12
+
+### FORMAT OF A <httprec> RECORD
+
+-------v-------v-------v-------v-----------v----------------------------------
+TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
+-------+-------+-------+-------+-----------+----------------------------------
+string  1       24      13      vhost       vhost name
+int16   2       2       2       count       connection count
+        ----    ----    ----
+        3       26      15
+
+### FORMAT OF A <toprec> RECORD
+
+-------v-------v-------v-------v-----------v----------------------------------
+TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
+-------+-------+-------+-------+-----------+----------------------------------
+string  1       9       6       username    username owning the process
+int32   4       4       4       pid         the process id
+int16   2       2       2       pcpu        cpu-usage (x 0.01%)
+int16   2       2       2       pmem        mem-usage (x 0.01%)
+int24   3       3       3       secrun      cpu-time used (x 1sec)
+string  1       31      6       ptitle      process title
+        ----    ----    ----
+        13      51      23
+
+### FORMAT OF A <xenvps> RECORD
+
+-------v-------v-------v-------v-----------v----------------------------------
+TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
+-------+-------+-------+-------+-----------+----------------------------------
+string  1       18      6       vpsid       name/id of the xen vps
+int16   2       2       2       pcpu        cpu-usage (x 0.01%)
+int16   2       2       2       ram         memory-usage (x 16 MB)
+int8    1       1       1       ncpu        cpu-count
+        ----    ----    ----
+        6       23      11
+
+### FORMAT OF A <port> RECORD
+
+-------v-------v-------v-------v-----------v----------------------------------
+TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
+-------+-------+-------+-------+-----------+----------------------------------
+int16   2       2       2       portno      TCP port number
+int16   2       2       2       nestab      # connections in state ESTABLISHED
+int16   2       2       2       nother      # connections in other states
+        ----    ----    ----
+        6       6       6
+
+
+### STRINGS
+
+There are three kinds of ways to encode a string:
+
+  (1) Basic 'pascal string' encoding
+  (2) Compressed 6 bit encoding
+  (3) Backreferences
+
+The first byte of a string indicates both its size and its encoding.
+If bit 7 is off, the string is encoded as (1) and bits 0-6 indicate
+the string's length in characters (and bytes) excluding the header
+byte. If it is 0, no data will follow (the string is presumed empty).
+
+If bit7 is 1, the string is encoded as (2) with the lower bits
+indicating the length in characters (of 6 bits). If this length is
+zero, encoding under (3) is implied and the next byte is an unsigned
+offset measured from the header byte, which should point to the
+header byte of an earlier string, which must be encoded using either
+(1) or (2).
+
+
+
+
+### FORMAT OF THE DISK DATABASE
+
+The disk database is a circular file of disk records, representing the past
+24 hours of netload sample data, with 640 bytes allocated for each record.
+The day consists of 1440 minutes, making the total file size 900 KB.
+
+Daily system tasks can use these files for further statistics gathering,
+either collate them into coarser statistics or even back them up ad
+verbatim.

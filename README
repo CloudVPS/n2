@@ -1,0 +1,61 @@
+Netload2 Server Monitoring Backend Software (N2)
+Copyright (C) 2004 Pim van Riezen <pi@madscience.nl>
+Copyright (C) 2008-2009 XLS Hosting <n2@xlshosting.com>
+This software is available under the GNU General Public License (GPL)
+
+PROGRAMS BUILT
+
+* n2txd
+
+  This is the transmit daemon. Install it on servers you want
+  to monitor. It reads its configuration from /etc/n2/n2txd.conf
+  
+* n2rxd
+
+  This is the receiver daemon that processes and logs information from
+  n2txd instances.
+  
+* n2ping
+
+  This is a daemon that runs alongside n2rxd and sends and receives
+  icmp echo-requests to keep track of latency towards monitored
+  hosts.
+  
+* n2hstat
+
+  Prints an ASCII or XML representation of the state of a specific host,
+  either at the current time or somewhere in the past.
+  
+  Usage:
+  	n2hstat [-x] <ipaddress> [hh:mm [yyyymmdd]]
+
+* n2history
+
+  Prints an ASCII graph for a specific host/value.
+  
+  Usage:
+    n2history <ipaddress> <value> <timespan>
+
+    	value:		cpu, load, netin, netout, rtt, diskio,
+					ram, swap, totalmem, nproc
+		
+		timespan:	hour, day, week, month
+
+* n2dump
+
+  Print one or more complete days of history for a host in CSV
+  format.
+  
+  Usage:
+    n2dump <ipaddress> <numberofdays>
+
+* n2pgrep
+
+  Search through a host's history for a top-process matching
+  a given query.
+  
+  Usage:
+  	n2pgrep <ipaddress> <datespec> <field> <query-string>
+  	
+  		datespec:	YYYYMMDD, today, yesterday
+  		field:		user, pid, name

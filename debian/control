@@ -1,0 +1,18 @@
+Source: n2
+Section: misc
+Priority: optional
+Maintainer: XLSHosting packager <opensource@xlshosting.com>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.7.2
+
+Package: n2txd
+Architecture: any
+Description: n2 transmit agent
+ This is the small agent component that you run on every host you
+ want to monitor.
+
+Package: n2rxd
+Architecture: any
+Description: n2 receive agent
+ This package consists of the receiver daemon that stores reports from
+ nodes running n2rxd, plus tools to inspect those reports.

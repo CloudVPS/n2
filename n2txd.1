@@ -1,0 +1,73 @@
+.TH n2txd 1 2007-07-10
+.SH Introduction
+The Netload2 (n2) monitoring system offers a form of passive server
+monitoring intended to supplement regular active systems based
+on SNMP. Its main purpose is to collect, at steady intervals, some
+system forensics and performance information about individual servers.
+.P
+The n2txd daemon handles the monitoring part, sending regular packets
+to one or more collector systems that run n2rxd. The following data
+is collected by default:
+.SH Monitored Values
+.IP Time
+Every sample tracks the host's recorded uptime and local system clock.
+.IP CPU
+Both the 1 minute load average and the total percentage of CPU resources
+eaten.
+.IP I/O
+Activity on disk- and network devices.
+.IP Mem
+Available RAM (sans caches/buffers) and swap space.
+.IP Disk space
+Free space on relevant disk devices.
+.IP "Process List"
+A 'top' list of active processes is collected, including their usage of
+memory and CPU resources.
+.IP Users
+A list of sessions as recorded in wtmp.
+.IP Ports
+A list of the most active TCP ports.
+.SH Configuration format
+The configuration for n2txd is kept in /etc/n2/n2txd.conf. The simplest
+set-up shows a configuration that looks like this:
+.IP
+server 10.1.1.1 port 4444
+.br
+ key supersecret
+.br
+!
+.P
+This instructs n2txd to send monitoring results to the server on 10.1.1.1:4444
+with 'supersecret' as a shared MD5 secret.
+.P
+If your system has multiple network interfaces, there are two things you
+may want to specify, here's a more complete configuration for these scenarios:
+.IP
+ip bind address 10.1.1.42
+.br
+interface-list eth0 eth2
+.br
+server 10.1.1.1 port 4444
+.br
+ key sup3rs3krit
+.br
+!
+.P
+This tells n2txd to use the source address '10.1.1.42' for sending packets
+and to only consider eth0 and eth2 when tracking network traffic.
+.SH Monitoring Apache 2.0 mod_status
+Optionally, n2txd can also monitor active vhosts using curl and apache's
+mod_status. This functionality depends on the exact HTML format of this
+module's output so it is not guaranteed to work for every apache
+version. You can activate mod_status monitoring using the modstatus 
+configuration keyword:
+.IP
+ip bind address 10.1.1.42
+.br
+modstatus http://10.1.1.42/server-status
+.br
+server 10.1.1.1 port 4444
+.br
+ key n0t0bvi0us
+.br
+!

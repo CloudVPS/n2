@@ -1,0 +1,114 @@
+Dec 10 DEVEL_0_9_4_PRE5
+
+  * Again tweaked with status handling. The flag bits are now reset before
+    the status in a round is determined. When an ALERT status is demoted
+    to a warning, the flags will be clear. The previous system didn't work
+    out the way it should when there were multiple flags involved in
+    more complex alert-wobbling.
+    
+  * Added a new tool n2pgrep, which allows you to search through a database
+    file using specific criteria.
+
+Dec  7 DEVEL_0_9_4_PRE4
+
+  * Fixed glaring bug in n2encoding of strings (obi-one on offset, why did
+    this ever work at all?).
+
+  * Some more general output tweaking.
+
+  * The data decoding now keeps an error string that n2hstat will print.
+
+Dec  6 DEVEL_0_9_4_PRE3
+
+  * n2groups human readable output now is a bit more distinctive for hosts
+    in ST_DEAD.
+
+Dec  5 DEVEL_0_9_4_PRE2
+
+  * Added a commandline utility 'n2conftool'. As its arguments it expects
+    configuration commands. These are applied against /etc/n2/n2rxd.conf,
+    with the merged data stored back in the same location. This makes it
+    easier for external programs (like cish scripts) to manipulate the
+    configuration file.
+
+Dec  2 DEVEL_0_9_4_PRE1
+
+  * Cleaned up status handling and logging a bit more, I've been seeing
+    some inconsistencies (where a host had a current status that didn't
+    match with the available log data), but I can't find a code path
+    that would lead to missing an update. Added some assertions.
+
+  * Fixed status recognition bug in n2group, it didn't grok ST_DEAD as an
+    alert status, plus it didn't dismiss the flag bits. All of this only
+    in the 'csv' export mode used by the cish2 scripts. The output of
+    'sho group' now makes more sense.
+
+  * Added utmp entries to the packet format, stats now include a list
+    of logged in users, their tty and their ip address.
+
+Dec  1 RELEASE_0_9_3_1
+
+  * Some improvements to the n2hstat output (more compact layout for a
+    number of items).
+
+  * The packet encoding format now recognizes redundant string constants
+    and replaces reoccuring strings inside the packet by a 2-byte reference
+    to the first instance.
+
+  * When coding the top processes, up to 8 entries are now potentially
+    stuffed into the packet (space at the end is reserved for the
+    tcp port statistics).
+
+  * Handling of status and status changes somewhat more sensible.
+
+Dec  1 DEVEL_0_9_3_PRE2
+
+  * On startup, n2txd will now assume responsibility for all hosts it can
+    find records for in /var/state/n2/current, instead of only picking up
+    hosts that are sending packets.
+
+  * Strings are, if possible, compressed to a 6-bit character set before
+    crossing the wire. Strings that have this property will have bit7 of
+    their length field set. The other 7 bits in length indicate the size
+    of the resulting string, not the data. Saves some space, so that
+    some fields can be longer (specifically the hostname and mountpoints
+    were sort of a problem).
+
+Nov 30 DEVEL_0_9_3_PRE1
+
+  * Upped the frequency in n2txd a bit.
+
+  * One in every four packets is re-sent by n2txd, further mitigating
+    hosts growing stale with minor packetloss.
+
+  * Fixed proper detection of re-sent packets in n2rxd.
+
+  * Added extra status watching for cpu%, ram, swap, netin, netout.
+
+  * Added 'default foo-warning' and 'default foo-alert' configuration
+    options to n2rxd.conf.
+
+Nov 28 RELEASE_0_9_2_1
+
+  * Minor output tweaks, add changelog.
+
+Nov 28 DEVEL_0_9_2_PRE3
+
+  * The upper 4 bits of status flag now contain the measurements responsible
+    for a warning/alert state (out of rtt,loss,load,sockstate).
+
+  * Various console/xml outputs tweaked to reflect this.
+
+Nov 28 DEVEL_0_9_2_PRE2
+
+  * Added a 16 entry per-host eventlog file in /var/state/n2/events that
+    contains a fixed-size array of 16 elements with a timestamp, the
+    old state, the new state and some explanatory text.
+
+  * Tweaked console/xml output to include this log information.
+
+  * Fixed a segmentation error in the init_info() handler.
+
+Nov 27 DEVEL_0_9_2_PRE1
+
+  * Cleaned up the state handling (added new states ST_STALE, ST_DEAD).
