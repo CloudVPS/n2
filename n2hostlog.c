@@ -1,11 +1,3 @@
-/* ========================================================================= *\
- * NETLOAD2                                                                  *
- *                                                                           *
- * Created by Pim van Riezen <pi@madscience.nl>                              *
- * Copyright (C) 2002-2008 Madscience Labs                                   *
- * This software is published under the GNU General Public License (GPL)     *
-\* ========================================================================= */
-
 #include "n2hostlog.h"
 #include <string.h>
 #include <stdio.h>
