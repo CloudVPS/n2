@@ -11,7 +11,7 @@ Group: Development
 Version: %version
 Source0: n2-%{version}.tar.gz
 Release: 1
-License: GPLv2
+License: GPLv3
 BuildRoot: /var/tmp/%{name}-buildroot
 %description
 n2 packages
