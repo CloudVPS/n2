@@ -1,5 +1,4 @@
 #!/bin/sh
-# postrm framework for openpanel packages
 #
 # see: dh_installdeb(1)
 

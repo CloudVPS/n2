@@ -1,5 +1,4 @@
 #!/bin/sh
-# prerm framework for openpanel packages
 #
 # see: dh_installdeb(1)
 
