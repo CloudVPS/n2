@@ -54,7 +54,7 @@ int main (int argc, char *argv[])
 	
 	if (argc < 2)
 	{
-		fprintf (stderr, "%% Usage: n2history <ipaddress>\n");
+		fprintf (stderr, "%% Usage: n2rawdat <ipaddress>\n");
 		return 1;
 	}
 	
