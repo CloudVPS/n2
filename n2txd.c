@@ -409,12 +409,14 @@ int mainloop (void *idontcare)
 
 pid_t myclone (int (*fn)(void *), void *optarg)
 {
+#ifdef STATIC
 	char *nstack = malloc (8192);
 	return clone (fn, nstack + 8184, CLONE_FS | CLONE_FILES | SIGCHLD, optarg);
-	/*
+#else
 	pid_t res = fork();
 	if (res == 0) exit (fn (optarg));
-	return res; */
+	return res;
+#endif
 }
 
 int daemonize_secondfork (void *a)

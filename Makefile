@@ -1,3 +1,8 @@
+ifdef STATIC
+  CFLAGS+=-DSTATIC
+  LDFLAGS=-static
+endif
+
 OBJS_RXD = iptypes.o hcache.o md5.o n2acl.o n2args.o n2config.o n2diskdb.o \
 	   n2encoding.o n2pingdb.o n2rxd.o n2hostlog.o n2malloc.o
 
@@ -89,55 +94,55 @@ reallyinstall: all
 	install -o root -g n2 -m 0750 n2groups /usr/bin/
 
 n2acl-test: n2acl-test.o n2malloc.o
-	$(CC) -o n2acl-test n2acl-test.o n2malloc.o
+	$(CC) $(LDFLAGS) -o n2acl-test n2acl-test.o n2malloc.o
 
 n2dump: $(OBJS_DUMP)
-	$(CC) -o n2dump $(OBJS_DUMP)
+	$(CC) $(LDFLAGS) -o n2dump $(OBJS_DUMP)
 
 n2conftool: $(OBJS_CONFTOOL)
-	$(CC) -o n2conftool $(OBJS_CONFTOOL)
+	$(CC) $(LDFLAGS) -o n2conftool $(OBJS_CONFTOOL)
 
 n2groups: $(OBJS_GROUPS)
-	$(CC) -o n2groups $(OBJS_GROUPS)
+	$(CC) $(LDFLAGS) -o n2groups $(OBJS_GROUPS)
 
 n2reconf: $(OBJS_RECONF)
-	$(CC) -o n2reconf $(OBJS_RECONF)
+	$(CC) $(LDFLAGS) -o n2reconf $(OBJS_RECONF)
 
 n2control: $(OBJS_CONTROL)
-	$(CC) -o n2control $(OBJS_CONTROL)
+	$(CC) $(LDFLAGS) -o n2control $(OBJS_CONTROL)
 
 n2txd: $(OBJS_TXD)
-	$(CC) -o n2txd $(OBJS_TXD)
+	$(CC) $(LDFLAGS) -o n2txd $(OBJS_TXD)
 	
 n2txd-debug: $(OBJS_TXD_DEBUG)
-	$(CC) -o n2txd-debug $(OBJS_TXD_DEBUG)
+	$(CC) $(LDFLAGS) -o n2txd-debug $(OBJS_TXD_DEBUG)
 
 n2rxd: $(OBJS_RXD)
-	$(CC) -o n2rxd $(OBJS_RXD)
+	$(CC) $(LDFLAGS) -o n2rxd $(OBJS_RXD)
 
 n2ping: $(OBJS_PING)
-	$(CC) -o n2ping $(OBJS_PING) -lpthread
+	$(CC) $(LDFLAGS) -o n2ping $(OBJS_PING) -lpthread
 
 n2hstat: $(OBJS_HSTAT)
-	$(CC) -o n2hstat $(OBJS_HSTAT)
+	$(CC) $(LDFLAGS) -o n2hstat $(OBJS_HSTAT)
 
 n2history: $(OBJS_HIST)
-	$(CC) -o n2history $(OBJS_HIST)
+	$(CC) $(LDFLAGS) -o n2history $(OBJS_HIST)
 
 n2rawdat: $(OBJS_RAW)
-	$(CC) -o n2rawdat $(OBJS_RAW)
+	$(CC) $(LDFLAGS) -o n2rawdat $(OBJS_RAW)
 
 n2pgrep: $(OBJS_PGREP)
-	$(CC) -o n2pgrep $(OBJS_PGREP)
+	$(CC) $(LDFLAGS) -o n2pgrep $(OBJS_PGREP)
 
 n2acl-test.o: n2acl.c n2acl.h
-	$(CC) -DUNIT_TEST -c n2acl.c -o n2acl-test.o
+	$(CC) $(LDFLAGS) -DUNIT_TEST -c n2acl.c -o n2acl-test.o
 
 n2txd-debug.o:
-	$(CC) -DDEBUG -I. -c n2txd.c -o n2txd-debug.o
+	$(CC) $(LDFLAGS) $(LDFLAGS) -DDEBUG -I. -c n2txd.c -o n2txd-debug.o
 	
 n2stat-linux-debug.o:
-	$(CC) -DDEBUG -I. -c n2stat-linux.c -o n2stat-linux-debug.o
+	$(CC) $(LDFLAGS) -DDEBUG -I. -c n2stat-linux.c -o n2stat-linux-debug.o
 
 clean:
 	rm -f *.o n2acl-test n2dump n2conftool n2groups n2reconf n2control n2txd n2txd-debug n2rxd n2ping n2hstat n2history n2rawdat n2pgrep
