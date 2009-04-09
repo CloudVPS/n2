@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <utmp.h>
 #include <syslog.h>
+#include <sys/utsname.h>
 
 #ifdef DEBUG
   #define dprintf printf
@@ -193,12 +194,21 @@ void gather_hostdat (netload_info *inf)
 {
 	FILE *F;
 	char  buf[256];
+  struct utsname unamebuf;
 	
 	strncpy (inf->hostname, CONF.hostname, 31);
 	inf->hostname[31] = 0;
 	inf->hosttime = time (NULL);
 	inf->ostype = MY_OSTYPE;
-	inf->hwtype = MY_HWTYPE;
+	
+  uname(&unamebuf);
+	inf->hwtype = HW_OTHER;
+	if (!strcmp(unamebuf.machine, "i386") || !strcmp(unamebuf.machine, "i686"))
+    inf->hwtype = HW_IA32;
+  else if (!strcmp(unamebuf.machine, "x86_64"))
+    inf->hwtype = HW_IA64;
+  else if (!strcmp(unamebuf.machine, "mips"))
+    inf->hwtype = HW_MIPS;
 	
 	F = fopen ("/proc/uptime", "r");
 	if (F)
