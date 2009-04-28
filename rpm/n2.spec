@@ -1,4 +1,4 @@
-%define version 1.0
+%define version 1.1
 
 %define libpath /usr/lib
 %ifarch x86_64
@@ -35,7 +35,7 @@ nodes running n2rxd, plus tools to inspect those reports.
 
 %build
 BUILD_ROOT=$RPM_BUILD_ROOT
-make
+LUALIBS='../lua-5.1.4/src/liblua.a -lm -ldl' LUAINC=-I../lua-5.1.4/src/ make 
 
 %install
 BUILD_ROOT=$RPM_BUILD_ROOT
@@ -53,6 +53,8 @@ sed s/n2txd/n2rxd/g < rpm/n2txd.init > rpm/n2rxd.init
 install -b -o root -g root -m 0755 rpm/n2rxd.init ${BUILD_ROOT}/etc/init.d/n2rxd
 rm rpm/n2rxd.init
 install -b -o root -g root -m 0644 n2rxd.example.conf ${BUILD_ROOT}/etc/n2/
+install -b -o root -g root -m 0644 analyze.lua ${BUILD_ROOT}/etc/n2/
+install -b -o root -g root -m 0644 analyze-user.lua ${BUILD_ROOT}/etc/n2/analyze-user.lua.example
 install -o root -g root -m 0755 n2rxd ${BUILD_ROOT}/usr/sbin/
 install -o root -g root -m 0755 n2ping ${BUILD_ROOT}/usr/sbin/
 install -o root -g root -m 0755 n2hstat ${BUILD_ROOT}/usr/bin/
@@ -121,6 +123,8 @@ exit 0
 %defattr(-,root,root)
 %dir /etc/n2
 /etc/n2/n2rxd.example.conf
+/etc/n2/analyze.lua
+/etc/n2/analyze-user.lua.example
 /usr/bin/n2control
 /usr/bin/n2history
 /usr/bin/n2rawdat
