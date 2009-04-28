@@ -35,7 +35,7 @@ nodes running n2rxd, plus tools to inspect those reports.
 
 %build
 BUILD_ROOT=$RPM_BUILD_ROOT
-LUALIBS='../lua-5.1.4/src/liblua.a -lm -ldl' LUAINC=-I../lua-5.1.4/src/ make 
+LUALIBS='/usr/local/lib/liblua.a -lm -ldl' LUAINC=-I/usr/local/include make
 
 %install
 BUILD_ROOT=$RPM_BUILD_ROOT
