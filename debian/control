@@ -3,7 +3,6 @@ Section: misc
 Priority: optional
 Maintainer: XLSHosting packager <opensource@xlshosting.com>
 Build-Depends: debhelper (>= 5), liblua5.1-dev
-Depends: liblua5.1-0
 Standards-Version: 3.7.2
 
 Package: n2txd
@@ -14,6 +13,7 @@ Description: n2 transmit agent
 
 Package: n2rxd
 Architecture: any
+Depends: liblua5.1-0
 Description: n2 receive agent
  This package consists of the receiver daemon that stores reports from
  nodes running n2rxd, plus tools to inspect those reports.
