@@ -13,6 +13,8 @@ install:
 	install -b -o root -g root -m 0755 debian/extra/n2rxd.init debian/n2rxd/etc/init.d/n2rxd
 	rm debian/extra/n2rxd.init
 	install -b -o root -g root -m 0644 n2rxd.example.conf debian/n2rxd/etc/n2/
+	install -b -o root -g root -m 0644 analyze.lua debian/n2rxd/etc/n2/
+	install -b -o root -g root -m 0644 analyze-user.lua debian/n2rxd/etc/n2/analyze-user.lua.example
 	install -o root -g root -m 0755 n2rxd debian/n2rxd/usr/sbin/
 	install -o root -g root -m 0755 n2ping debian/n2rxd/usr/sbin/
 	install -o root -g root -m 0755 n2hstat debian/n2rxd/usr/bin/
@@ -21,9 +23,10 @@ install:
 	install -o root -g root -m 0755 n2rawdat debian/n2rxd/usr/bin/
 	install -o root -g root -m 0755 n2control debian/n2rxd/usr/bin/
 	install -o root -g root -m 0755 n2groups debian/n2rxd/usr/bin/
+	install -o root -g root -m 0755 n2analyze debian/n2rxd/usr/bin/
 
 build:
-	make
+	LUA=lua5.1 make
 
 binary-indep:
 
