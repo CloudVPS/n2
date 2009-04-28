@@ -15,6 +15,9 @@ OBJS_TXD_DEBUG = iptypes.o md5.o n2args.o n2config.o n2acl.o n2encoding.o \
                  n2malloc.o proctitle.o http_fetcher.o \
                  http_error_codes.o xenvps.o
 
+OBJS_ANALYZE = n2analyze.o n2diskdb.o n2encoding.o md5.o n2hostlog.o \
+               iptypes.o n2malloc.o
+
 OBJS_PING = n2ping.o iptypes.o n2pingdb.o n2malloc.o
 
 OBJS_HSTAT = n2encoding.o iptypes.o n2diskdb.o n2hstat.o md5.o n2hostlog.o n2malloc.o
@@ -36,7 +39,7 @@ OBJS_CONTROL = n2control.o n2malloc.o
 
 OBJS_CONFTOOL = n2conftool.o iptypes.o n2config.o n2acl.o n2args.o n2malloc.o n2encoding.o md5.o n2hostlog.o
 
-all: n2txd n2rxd n2ping n2hstat n2control n2history n2dump n2groups n2reconf n2pgrep n2rawdat # n2conftool
+all: n2txd n2rxd n2ping n2hstat n2control n2history n2dump n2groups n2reconf n2pgrep n2analyze n2rawdat # n2conftool
 
 install: all
 	@echo "##########################################################################"
@@ -93,6 +96,9 @@ reallyinstall: all
 	install -o root -g n2 -m 4750 n2control /usr/bin/
 	install -o root -g n2 -m 0750 n2groups /usr/bin/
 
+n2analyze: $(OBJS_ANALYZE)
+	$(CC) -o n2analyze $(OBJS_ANALYZE) `pkg-config --libs lua`
+
 n2acl-test: n2acl-test.o n2malloc.o
 	$(CC) $(LDFLAGS) -o n2acl-test n2acl-test.o n2malloc.o
 
@@ -135,6 +141,9 @@ n2rawdat: $(OBJS_RAW)
 n2pgrep: $(OBJS_PGREP)
 	$(CC) $(LDFLAGS) -o n2pgrep $(OBJS_PGREP)
 
+n2analyze.o: n2analyze.c
+	$(CC) `pkg-config --cflags lua` -c n2analyze.c
+
 n2acl-test.o: n2acl.c n2acl.h
 	$(CC) $(LDFLAGS) -DUNIT_TEST -c n2acl.c -o n2acl-test.o
 
@@ -146,6 +155,8 @@ n2stat-linux-debug.o:
 
 clean:
 	rm -f *.o n2acl-test n2dump n2conftool n2groups n2reconf n2control n2txd n2txd-debug n2rxd n2ping n2hstat n2history n2rawdat n2pgrep
+
+
 
 .SUFFIXES: .c .o
 .c.o:

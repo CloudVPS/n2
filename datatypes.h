@@ -185,6 +185,22 @@ typedef struct netload_portinfo_struc
 #define NR_MOUNTS 4
 #define NR_XENVPS 16
 
+enum netload_info_field {
+	F_STATUS,
+	F_RTT,
+	F_LOSS,
+	F_UPTIME,
+	F_LOADAVG,
+	F_CPU,
+	F_DISKIO,
+	F_NPROC,
+	F_MEMFREE,
+	F_SWAPFREE,
+	F_TOTALMEM,
+	F_NETIN,
+	F_NETOUT
+};
+
 typedef struct netload_info_struc
 {
 	status_t		 	 status;
