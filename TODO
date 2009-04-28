@@ -1,1 +1,2 @@
-restart daemon (if it's running) on debian upgrade?
+- restart daemon (if it's running) on debian upgrade?
+- don't write a file called --help when user invokes n2analyze --help
