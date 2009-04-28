@@ -4,6 +4,8 @@ ifdef STATIC
 endif
 
 LUA?=lua
+LUALIBS?=`pkg-config --libs $(LUA)`
+LUAINC?=`pkg-config --cflags $(LUA)`
 
 OBJS_RXD = iptypes.o hcache.o md5.o n2acl.o n2args.o n2config.o n2diskdb.o \
 	   n2encoding.o n2pingdb.o n2rxd.o n2hostlog.o n2malloc.o
@@ -99,7 +101,7 @@ reallyinstall: all
 	install -o root -g n2 -m 0750 n2groups /usr/bin/
 
 n2analyze: $(OBJS_ANALYZE)
-	$(CC) -o n2analyze $(OBJS_ANALYZE) `pkg-config --libs $(LUA)`
+	$(CC) -o n2analyze $(OBJS_ANALYZE) $(LUALIBS)
 
 n2acl-test: n2acl-test.o n2malloc.o
 	$(CC) $(LDFLAGS) -o n2acl-test n2acl-test.o n2malloc.o
@@ -144,7 +146,7 @@ n2pgrep: $(OBJS_PGREP)
 	$(CC) $(LDFLAGS) -o n2pgrep $(OBJS_PGREP)
 
 n2analyze.o: n2analyze.c
-	$(CC) `pkg-config --cflags $(LUA)` -c n2analyze.c
+	$(CC) $(LUAINC) -c n2analyze.c
 
 n2acl-test.o: n2acl.c n2acl.h
 	$(CC) $(LDFLAGS) -DUNIT_TEST -c n2acl.c -o n2acl-test.o
