@@ -9,7 +9,7 @@ OBJS_RXD = iptypes.o hcache.o md5.o n2acl.o n2args.o n2config.o n2diskdb.o \
 	   n2encoding.o n2pingdb.o n2rxd.o n2hostlog.o n2malloc.o
 
 OBJS_TXD = iptypes.o md5.o n2args.o n2config.o n2acl.o n2encoding.o \
-	   n2txd.o n2stat-linux.o tproc.o n2hostlog.o n2malloc.o proctitle.o \
+	   n2txd.o n2stat-darwin.o tproc.o n2hostlog.o n2malloc.o proctitle.o \
 	   http_fetcher.o http_error_codes.o xenvps.o
 
 OBJS_TXD_DEBUG = iptypes.o md5.o n2args.o n2config.o n2acl.o n2encoding.o \

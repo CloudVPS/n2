@@ -650,7 +650,7 @@ int check_alert_status (unsigned long rhost,
 	if (hcnode->alertlevel > 24) info->status = MKSTATUS(info->status,ST_CRITICAL);
 	
 	/* Determine if we changed the status */
-	if (info->status != oldstatus) return 1;
+	if (RDSTATUS(info->status) != RDSTATUS(oldstatus)) return 1;
 	return 0;
 }
 
