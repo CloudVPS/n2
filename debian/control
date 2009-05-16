@@ -2,7 +2,7 @@ Source: n2
 Section: misc
 Priority: optional
 Maintainer: XLSHosting packager <opensource@xlshosting.com>
-Build-Depends: debhelper (>= 5), liblua5.1-dev
+Build-Depends: debhelper (>= 5), liblua5.1-dev, pkg-config
 Standards-Version: 3.7.2
 
 Package: n2txd
