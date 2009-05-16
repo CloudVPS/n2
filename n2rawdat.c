@@ -174,7 +174,7 @@ int main (int argc, char *argv[])
 		dtotal = dtotal / step;
 		datum = dtotal & 0xffffffff;
 		if (datum > max) max = datum;
-		data[299-i] = datum;
+		data[319-i] = datum;
 	}
 	
 	if (what == CPU) max = 256;
