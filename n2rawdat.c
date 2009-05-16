@@ -112,7 +112,7 @@ int main (int argc, char *argv[])
 	ipstr = argv[1];
 	ipaddr = atoip (ipstr);
 	
-	for (i=0; i<300; ++i)
+	for (i=0; i<320; ++i)
 	{
 		dtotal = 0;
 		for (ii=0; ii<step; ++ii)
