@@ -183,7 +183,7 @@ int main (int argc, char *argv[])
 
 	printf ("%f\n", ((double) max) / divider);
 
-	for (i=0; i<300; ++i)
+	for (i=0; i<320; ++i)
 	{
 		printf ("%i\n", (int)(((double)data[i]) / maxdivider));
 	}
