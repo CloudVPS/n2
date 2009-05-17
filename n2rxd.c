@@ -631,8 +631,8 @@ int check_alert_status (unsigned long rhost,
 	}
 	else
 	{
-		if (hadalert > 1) maxlevel = 35;
-		else if (hadalert > 0) maxlevel = 50;
+		if (hadalert > 1) maxlevel = 50;
+		else if (hadalert > 0) maxlevel = 35;
 		else maxlevel = 20;
 		
 		if (hcnode->alertlevel < maxlevel)
