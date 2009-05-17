@@ -107,7 +107,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 		
 		if (RDSTATUS(status) >= ST_STALE)
 		{
-			status = ST_STARTUP_1;
+			status = ST_OK;
 		}
 		
 		if (uptime < hcache_getuptime (cache, rhost))
@@ -117,6 +117,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 				status = ST_STARTUP_1;
 				statuslog (rhost, "Reboot detected");
 				hostlog (rhost, status, status, oflags, "Reboot detected");
+				cnode->alertlevel = 0;
 			}
 			else
 			{
@@ -622,17 +623,17 @@ int check_alert_status (unsigned long rhost,
 
 	if ((hadwarning == 0) && (hadalert == 0))
 	{
-		if (hcnode->alertlevel > 8)
+		if (hcnode->alertlevel > 12)
 		{
-			hcnode->alertlevel -= 8;
+			hcnode->alertlevel = hcnode->alertlevel >> 1;
 		}
 		else hcnode->alertlevel = 0;
 	}
 	else
 	{
-		if (hadalert > 1) maxlevel = 25;
-		else if (hadalert > 0) maxlevel = 16;
-		else maxlevel = 8;
+		if (hadalert > 1) maxlevel = 35;
+		else if (hadalert > 0) maxlevel = 50;
+		else maxlevel = 20;
 		
 		if (hcnode->alertlevel < maxlevel)
 		{
@@ -642,12 +643,13 @@ int check_alert_status (unsigned long rhost,
 				hcnode->alertlevel = maxlevel;
 			}
 		}
+		else hcnode->alertlevel = maxlevel;
 	}
 	
-	if (hcnode->alertlevel < 5) info->status = MKSTATUS(info->status,ST_OK);
-	if (hcnode->alertlevel > 4) info->status = MKSTATUS(info->status,ST_WARNING);
-	if (hcnode->alertlevel > 12) info->status = MKSTATUS(info->status,ST_ALERT);
-	if (hcnode->alertlevel > 24) info->status = MKSTATUS(info->status,ST_CRITICAL);
+	if (hcnode->alertlevel < 7) info->status = MKSTATUS(info->status,ST_OK);
+	if (hcnode->alertlevel > 6) info->status = MKSTATUS(info->status,ST_WARNING);
+	if (hcnode->alertlevel > 24) info->status = MKSTATUS(info->status,ST_ALERT);
+	if (hcnode->alertlevel > 40) info->status = MKSTATUS(info->status,ST_CRITICAL);
 	
 	/* Determine if we changed the status */
 	if (RDSTATUS(info->status) != RDSTATUS(oldstatus)) return 1;
