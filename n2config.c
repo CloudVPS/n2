@@ -46,7 +46,9 @@ void conf_iflist (n2arglist *);
 void conf_iolist (n2arglist *);
 void conf_service (n2arglist *);
 void conf_modstatus (n2arglist *);
+void conf_encode_modstatus (n2arglist *);
 void conf_xenvps (n2arglist *);
+void conf_encode_xen (n2arglist *);
 void conf_host_group (n2arglist *);
 void conf_group_member_host (n2arglist *);
 void conf_group_member_network (n2arglist *);
@@ -104,6 +106,8 @@ n2command CONF_NO_ENC_OPT[] = {
 n2command CONF_ENC_OPT[] = {
 	{"logins", NULL, conf_encode_logins},
 	{"tcpstat", NULL, conf_encode_tcpstat},
+	{"modstatus", NULL, conf_encode_modstatus},
+	{"xen", NULL, conf_encode_xen},
 	{"no", CONF_NO_ENC_OPT, NULL},
 	{NULL, NULL, NULL}
 };
@@ -1120,7 +1124,24 @@ void conf_iolist (n2arglist *arg)
 void conf_modstatus (n2arglist *arg)
 {
 	CONF.modstatus = 1;
+	fprintf (stderr, "%% WARNING: modstatus statement in configuration is deprecated. Please use\n"
+					 "  encoding-options.");
 	strncpy (CONF.statusurl, arg->argv[1], 63);
+	CONF.statusurl[63] = 0;
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION conf_encode_modstatus (args)                                     *
+\* ------------------------------------------------------------------------- */
+void conf_encode_modstatus (n2arglist *arg)
+{
+	if (arg->argc < 3)
+	{
+		fprintf (stderr, "%% ERROR: Could not parse modstatus encoding statement\n");
+		exit (1);
+	}
+	CONF.modstatus = 1;
+	strncpy (CONF.statusurl, arg->argv[2], 63);
 	CONF.statusurl[63] = 0;
 }
 
@@ -1128,6 +1149,16 @@ void conf_modstatus (n2arglist *arg)
  * FUNCTION conf_xenvps (args)                                               *
 \* ------------------------------------------------------------------------- */
 void conf_xenvps (n2arglist *arg)
+{
+	fprintf (stderr, "%% WARNING: xen statement in configuration is deprecated. Please use\n"
+					 "  encoding-options.");
+	CONF.xen = 1;
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION conf_encode_xen (args)                                           *
+\* ------------------------------------------------------------------------- */
+void conf_encode_xen (n2arglist *arg)
 {
 	CONF.xen = 1;
 }
