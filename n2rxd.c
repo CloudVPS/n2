@@ -573,7 +573,7 @@ int check_alert_status (unsigned long rhost,
 		errorlog (rhost, "Host back from the dead");
 		hostlog (rhost, info->status, ST_STARTUP_1, 0,
 					"Host back from the dead");
-		info->status = ST_STARTUP_1;
+		info->status = ST_OK;
 		return 1;
 	}
 	
