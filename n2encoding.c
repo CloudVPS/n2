@@ -1478,7 +1478,7 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 	
 	printf ("  <hostname>%s</hostname>\n", inf->hostname);
 	printf ("  <status>%s</status>\n", STR_STATUS[inf->status & 15]);
-	printf ("  <flags>"
+	printf ("  <flags>\n");
 	printf ("    <rtt>%i</rtt>\n", CHKSTATUSFLAG(inf->status,FLAG_RTT));
 	printf ("    <loss>%i</loss>\n", CHKSTATUSFLAG(inf->status,FLAG_LOSS));
 	printf ("    <load>%i</load>\n", CHKSTATUSFLAG(inf->status,FLAG_LOAD));
@@ -1489,7 +1489,7 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 	printf ("    <svcdown>%i</svcdown>\n", CHKOFLAG(inf->oflags,OFLAG_SVCDOWN));
 	printf ("    <diskio>%i</diskio>\n", CHKOFLAG(inf->oflags,OFLAG_DISKIO));
 	printf ("    <other>%i</other>\n", CHKSTATUSFLAG(inf->status,FLAG_OTHER));
-	printf ("  </flags>");
+	printf ("  </flags>\n");
 	printf ("  <uptime>%i</uptime>\n", inf->uptime);
 	printf ("  <os>%s</os>\n", STR_OS[inf->ostype & 15]);
 	printf ("  <hardware>%s</hardware>\n", STR_HW[inf->hwtype & 15]);
