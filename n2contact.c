@@ -27,6 +27,7 @@ int main (int argc, char *argv[])
 	addr = atoip (argv[1]);
 	if (! addr) return 0;
 	
+	load_config ("/etc/n2/n2rxd.conf");
 	a = acl_match (addr);
 	if (! a) return 0;
 	
