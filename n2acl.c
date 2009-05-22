@@ -263,6 +263,7 @@ acl *acl_create (unsigned long addr, unsigned long netmask)
 	res->parent				= NULL;
 	res->first				= NULL;
 	res->last				= NULL;
+	res->contacts			= 0;
 	res->key[0] 			= 0;
 	res->flags 				= 0;
 	res->rtt_warning		= 0xffff;
@@ -376,6 +377,38 @@ acl *acl_create (unsigned long addr, unsigned long netmask)
 	}
 	
 	return res;
+}
+
+acl_contact *acl_get_contacts (acl *a)
+{
+	acl *crsr = a;
+	while (crsr)
+	{
+		if (crsr->contacts) return crsr->contacts;
+		crsr = crsr->parent;
+	}
+	return NULL;
+}
+
+void acl_add_contact (acl *a, const char *url)
+{
+	acl_contact *newc, *c;
+	newc = (acl_contact *) malloc (sizeof (acl_contact));
+	if (! newc) return;
+	
+	newc->next = NULL;
+	strncpy (newc->contacturl, url, 255);
+	newc->contacturl[255] = 0;
+	
+	c = a->contacts;
+	if (! c)
+	{
+		a->contacts = newc;
+		return;
+	}
+	
+	while (c->next) c = c->next;
+	c->next = newc;
 }
 
 /* ------------------------------------------------------------------------- *\

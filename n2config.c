@@ -21,6 +21,7 @@ void conf_hostname (n2arglist *);
 void conf_service_match (n2arglist *);
 void conf_monitor_group (n2arglist *);
 void conf_monitor_key (n2arglist *);
+void conf_monitor_contact (n2arglist *);
 void conf_monitor_rtt_warning (n2arglist *);
 void conf_monitor_rtt_alert (n2arglist *);
 void conf_monitor_loadavg_warning (n2arglist *);
@@ -177,6 +178,7 @@ n2command CONF_HOST_GROUP[] = {
 
 n2command CONF_MONITOR_GROUP[] = {
 	{"key", NULL, conf_monitor_key},
+	{"contact", NULL, conf_monitor_contact},
 	{"rtt-warning", NULL, conf_monitor_rtt_warning},
 	{"rtt-alert", NULL, conf_monitor_rtt_alert},
 	{"loadavg-warning", NULL, conf_monitor_loadavg_warning},
@@ -748,6 +750,17 @@ void conf_monitor_key (n2arglist *arg)
 		fprintf (stderr, "%% Syntax error in configuration file "
 						 "<key> statement\n");
 		exit (1);
+	}
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION conf_monitor_contact (args)                                      *
+\* ------------------------------------------------------------------------- */
+void conf_monitor_contact (n2arglist *arg)
+{
+	if (arg->argc > 1)
+	{
+		acl_add_contact (curacl, arg->argv[1]);
 	}
 }
 

@@ -1472,173 +1472,165 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 	printip (host, astr);
 	
 	printf ("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-	printf ("<nl.madscience.svc.n2.state addr=\"%s\" "
+	printf ("<host addr=\"%s\" "
 			"date=\"%i\" offset=\"%i\">\n",
 			 astr, dt, offs);
 	
-	printf ("  <n2.hostname>%s</n2.hostname>\n", inf->hostname);
-	printf ("  <n2.status>%s</n2.status>\n", STR_STATUS[inf->status & 15]);
-	printf ("  <n2.flags.rtt>%i</n2.flags.rtt>\n",
-						CHKSTATUSFLAG(inf->status,FLAG_RTT));
-	printf ("  <n2.flags.loss>%i</n2.flags.loss>\n",
-						CHKSTATUSFLAG(inf->status,FLAG_LOSS));
-	printf ("  <n2.flags.load>%i</n2.flags.load>\n",
-						CHKSTATUSFLAG(inf->status,FLAG_LOAD));
-	printf ("  <n2.flags.ram>%i</n2.flags.ram>\n",
-						CHKOFLAG(inf->oflags,OFLAG_RAM));
-	printf ("  <n2.flags.swap>%i</n2.flags.swap>\n",
-						CHKOFLAG(inf->oflags,OFLAG_SWAP));
-	printf ("  <n2.flags.netin>%i</n2.flags.netin>\n",
-						CHKOFLAG(inf->oflags,OFLAG_NETIN));
-	printf ("  <n2.flags.netout>%i</n2.flags.netout>\n",
-						CHKOFLAG(inf->oflags,OFLAG_NETOUT));
-	printf ("  <n2.flags.svcdown>%i</n2.flags.svcdown>\n",
-						CHKOFLAG(inf->oflags,OFLAG_SVCDOWN));
-	printf ("  <n2.flags.diskio>%i</n2.flags.diskio>\n",
-						CHKOFLAG(inf->oflags,OFLAG_DISKIO));
-	printf ("  <n2.flags.other>%i</n2.flags.other>\n",
-						CHKSTATUSFLAG(inf->status,FLAG_OTHER));
-	printf ("  <n2.uptime>%i</n2.uptime>\n", inf->uptime);
-	printf ("  <n2.os>%s</n2.os>\n", STR_OS[inf->ostype & 15]);
-	printf ("  <n2.hardware>%s</n2.hardware>\n", STR_HW[inf->hwtype & 15]);
+	printf ("  <hostname>%s</hostname>\n", inf->hostname);
+	printf ("  <status>%s</status>\n", STR_STATUS[inf->status & 15]);
+	printf ("  <flags>"
+	printf ("    <rtt>%i</rtt>\n", CHKSTATUSFLAG(inf->status,FLAG_RTT));
+	printf ("    <loss>%i</loss>\n", CHKSTATUSFLAG(inf->status,FLAG_LOSS));
+	printf ("    <load>%i</load>\n", CHKSTATUSFLAG(inf->status,FLAG_LOAD));
+	printf ("    <ram>%i</ram>\n", CHKOFLAG(inf->oflags,OFLAG_RAM));
+	printf ("    <swap>%i</swap>\n", CHKOFLAG(inf->oflags,OFLAG_SWAP));
+	printf ("    <netin>%i</netin>\n", CHKOFLAG(inf->oflags,OFLAG_NETIN));
+	printf ("    <netout>%i</netout>\n", CHKOFLAG(inf->oflags,OFLAG_NETOUT));
+	printf ("    <svcdown>%i</svcdown>\n", CHKOFLAG(inf->oflags,OFLAG_SVCDOWN));
+	printf ("    <diskio>%i</diskio>\n", CHKOFLAG(inf->oflags,OFLAG_DISKIO));
+	printf ("    <other>%i</other>\n", CHKSTATUSFLAG(inf->status,FLAG_OTHER));
+	printf ("  </flags>");
+	printf ("  <uptime>%i</uptime>\n", inf->uptime);
+	printf ("  <os>%s</os>\n", STR_OS[inf->ostype & 15]);
+	printf ("  <hardware>%s</hardware>\n", STR_HW[inf->hwtype & 15]);
 	
 	if (inf->services)
 	{
-		printf ("  <n2.services>\n");
+		printf ("  <services>\n");
 		for (i=0; i<32; ++i)
 		{
 			if (inf->services & (1 << i))
 			{
-				printf ("    <n2.service>%s</n2.service>\n", STR_SVC[i]);
+				printf ("    <service>%s</service>\n", STR_SVC[i]);
 			}
 		}
-		printf ("  </n2.services>\n");
+		printf ("  </services>\n");
 	}
 	else
 	{
-		printf ("  <n2.services/>\n");
+		printf ("  <services/>\n");
 	}
 	
-	printf ("  <n2.loadavg>%3.2f</n2.loadavg>\n",
+	printf ("  <loadavg>%3.2f</loadavg>\n",
 			(double) inf->load1 / 100.0);
 	
-	printf ("  <n2.percentcpu>%3.2f</n2.percentcpu>\n",
+	printf ("  <percentcpu>%3.2f</percentcpu>\n",
 			(double) inf->cpu/2.55);
 			
-	printf ("  <n2.processcount running=\"%i\">%i</n2.processcount>\n",
+	printf ("  <processcount running=\"%i\">%i</processcount>\n",
 			inf->nrun, inf->nproc);
 			
-	printf ("  <n2.mbfreeram>%.2f</n2.mbfreeram>\n",
+	printf ("  <mbfreeram>%.2f</mbfreeram>\n",
 			((float)inf->kmemfree)/1024.0);
 			
-	printf ("  <n2.mbfreeswap>%.2f</n2.mbfreeswap>\n",
+	printf ("  <mbfreeswap>%.2f</mbfreeswap>\n",
 			((float)inf->kswapfree)/1024.0);
 			
-	printf ("  <n2.netin>%i</n2.netin>\n", inf->netin);
-	printf ("  <n2.netout>%i</n2.netout>\n", inf->netout);
-	printf ("  <n2.diskio>%i</n2.diskio>\n", inf->diskio);
-	printf ("  <n2.rtt>%.1f</n2.rtt>\n", (double) inf->ping10 / 10.0);
-	printf ("  <n2.packetloss>%.2f</n2.packetloss>\n",
+	printf ("  <netin>%i</netin>\n", inf->netin);
+	printf ("  <netout>%i</netout>\n", inf->netout);
+	printf ("  <diskio>%i</diskio>\n", inf->diskio);
+	printf ("  <rtt>%.1f</rtt>\n", (double) inf->ping10 / 10.0);
+	printf ("  <packetloss>%.2f</packetloss>\n",
 			(double) inf->loss/100.0);
 
 	if (inf->nmounts)
 	{
-		printf ("  <n2.mounts>\n");
+		printf ("  <mounts>\n");
 		for (i=0; i<inf->nmounts; ++i)
 		{
 			if (inf->mounts[i].usage > 1000)
 			{
-				printf ("    <n2.mount fstype=\"%s\" usage=\"100\" error=\"1\">%s"
-						"</n2.mount>\n",
+				printf ("    <mount fstype=\"%s\" usage=\"100\" error=\"1\">%s"
+						"</mount>\n",
 						inf->mounts[i].fstype,
 						inf->mounts[i].mountpoint);
 			}
 			else
 			{
-				printf ("    <n2.mount fstype=\"%s\" usage=\"%.02f\">%s"
-						"</n2.mount>\n",
+				printf ("    <mount fstype=\"%s\" usage=\"%.02f\">%s"
+						"</mount>\n",
 						inf->mounts[i].fstype,
 						(double) inf->mounts[i].usage / 10.0,
 						inf->mounts[i].mountpoint);
 			}
 		}
-		printf ("  </n2.mounts>\n");
+		printf ("  </mounts>\n");
 	}
-	else printf ("  <n2.mounts/>\n");
+	else printf ("  <mounts/>\n");
 	
 	if (inf->ntop)
 	{
-		printf ("  <n2.processes>\n");
+		printf ("  <processes>\n");
 		for (i=0; i<inf->ntop; ++i)
 		{
-			printf ("    <n2.process id=\"%i\" user=\"%s\" "
-					"usage=\"%.2f\" memusage=\"%.2f\">%s</n2.process>\n",
+			printf ("    <process id=\"%i\" user=\"%s\" "
+					"usage=\"%.2f\" memusage=\"%.2f\">%s</process>\n",
 					inf->tprocs[i].pid,
 					inf->tprocs[i].username,
 					(double) inf->tprocs[i].pcpu / 100.0,
 					(double) inf->tprocs[i].pmem / 100.0,
 					inf->tprocs[i].ptitle);
 		}
-		printf ("  </n2.processes>\n");
+		printf ("  </processes>\n");
 	}
-	else printf ("  <n2.processes/>\n");
+	else printf ("  <processes/>\n");
 	
 	if (inf->nports)
 	{
-		printf ("  <n2.ports>\n");
+		printf ("  <ports>\n");
 		for (i=0; i<inf->nports; ++i)
 		{
-			printf ("    <n2.port num=\"%i\" connected=\"%i\" "
+			printf ("    <port num=\"%i\" connected=\"%i\" "
 					"other=\"%i\"/>\n",
 					inf->ports[i].port, inf->ports[i].nestab,
 					inf->ports[i].nother);
 		}
-		printf ("  </n2.ports>\n");
+		printf ("  </ports>\n");
 	}
-	else printf ("  <n2.ports/>\n");
+	else printf ("  <ports/>\n");
 	
 	if (inf->ntty)
 	{
-		printf ("  <n2.ttys>\n");
+		printf ("  <ttys>\n");
 		for (i=0; i<inf->ntty; ++i)
 		{
 			printip (inf->ttys[i].host, astr);
-			printf ("    <n2.tty line=\"%s\" username=\"%s\" host=\"%s\"/>\n",
+			printf ("    <tty line=\"%s\" username=\"%s\" host=\"%s\"/>\n",
 					inf->ttys[i].line, inf->ttys[i].username, astr);
 		}
-		printf ("  </n2.ttys>\n");
+		printf ("  </ttys>\n");
 	}
-	else printf ("  <n2.ttys/>\n");
+	else printf ("  <ttys/>\n");
 	
 	if (inf->nhttp)
 	{
-		printf ("  <n2.http>\n");
+		printf ("  <http>\n");
 		for (i=0; i<inf->nhttp; ++i)
 		{
-			printf ("    <n2.vhost id=\"%s\">%i</n2.vhost>\n",
+			printf ("    <vhost id=\"%s\">%i</vhost>\n",
 					inf->http[i].vhost, inf->http[i].count);
 		}
-		printf ("  </n2.http>\n");
+		printf ("  </http>\n");
 	}
-	else printf ("  <n2.http/>\n");
+	else printf ("  <http/>\n");
 	
 	if (inf->nxenvps)
 	{
-		printf ("  <n2.xenvps>\n");
+		printf ("  <xenvps>\n");
 		for (i=0; i<inf->nxenvps; ++i)
 		{
 			if (inf->xenvps[i].id[0] == 0) continue;
 			
-			printf ("    <n2.vps id=\"%s\" cpu=\"%i\" mem=\"%i\" "
+			printf ("    <vps id=\"%s\" cpu=\"%i\" mem=\"%i\" "
 					"iops=\"%i\"/>\n", inf->xenvps[i].id,
 					inf->xenvps[i].pcpu,
 					inf->xenvps[i].memory,
 					inf->xenvps[i].iops);
 		}
-		printf ("  </n2.xenvps>\n");
+		printf ("  </xenvps>\n");
 	}
-	else printf ("  <n2.xenvps/>\n");
+	else printf ("  <xenvps/>\n");
 	
 	print_hostlog_xml (host);
-	printf ("</nl.madscience.svc.n2.state>\n");
+	printf ("</host>\n");
 }

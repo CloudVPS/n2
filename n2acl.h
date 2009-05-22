@@ -25,6 +25,12 @@
 #define DEF_DISKIO_WARNING	   16384 /* 16MBblk/s */
 #define DEF_DISKIO_ALERT       32768 /* 32Mblk/s */
 
+typedef struct aclcontact_struc
+{
+	struct aclcontact_struc		*next;
+	char						 contacturl[256];
+} acl_contact;
+
 /* ------------------------------------------------------------------------- *\
  * The acl structure as defined by a 'monitor-group' in the configuration    *
  * Defined as an IP subnet that has a number of trigger-values. Subnets      *
@@ -38,6 +44,7 @@ typedef struct acl_struc
 	struct acl_struc	*first;
 	struct acl_struc	*last;
 	struct acl_struc	*parent;
+	acl_contact			*contacts;
 	unsigned long		 addr, mask;
 	char				 key[63];
 	char				 flags;
@@ -170,6 +177,8 @@ DEFACLPROP (netout_warning,unsigned int);
 DEFACLPROP (netout_alert,unsigned int);
 
 #undef DEFACLPROP
+
+acl_contact *acl_get_contacts (acl *a);
 
 /* ------------------------------------------------------------------------- *\
  * Other acl functions                                                       *

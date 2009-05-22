@@ -39,11 +39,14 @@ OBJS_PGREP = n2encoding.o iptypes.o n2diskdb.o n2pgrep.o md5.o n2hostlog.o n2mal
 OBJS_GROUPS = n2encoding.o iptypes.o n2diskdb.o n2config.o n2acl.o \
 	      n2groups.o md5.o n2args.o n2hostlog.o n2malloc.o
 
+OBJS_CONTACT = iptypes.o n2config.o n2acl.o n2args.o n2malloc.o n2contact.o
+
 OBJS_CONTROL = n2control.o n2malloc.o
 
 OBJS_CONFTOOL = n2conftool.o iptypes.o n2config.o n2acl.o n2args.o n2malloc.o n2encoding.o md5.o n2hostlog.o
 
-all: n2txd n2rxd n2ping n2hstat n2control n2history n2dump n2groups n2reconf n2pgrep n2analyze n2rawdat # n2conftool
+all: n2txd n2rxd n2ping n2hstat n2control n2history n2dump n2groups \
+	 n2reconf n2pgrep n2analyze n2rawdat n2contact
 
 install: all
 	@echo "##########################################################################"
@@ -75,6 +78,7 @@ justinstall: all
 	install -o root -g n2 -m 0755 n2rawdat $(DESTDIR)/usr/bin/
 	install -o root -g n2 -m 0755 n2control $(DESTDIR)/usr/bin/
 	install -o root -g n2 -m 0755 n2groups $(DESTDIR)/usr/bin/
+	install -o root -g n2 -m 0755 n2contact $(DESTDIR)/usr/bin/
 
 reallyinstall: all
 	install -d -o root -g root -m 0755 /var/state
@@ -105,6 +109,9 @@ n2analyze: $(OBJS_ANALYZE)
 
 n2acl-test: n2acl-test.o n2malloc.o
 	$(CC) $(LDFLAGS) -o n2acl-test n2acl-test.o n2malloc.o
+
+n2contact: $(OBJS_CONTACT)
+	$(CC) $(LDFLAGS) -o n2contact $(OBJS_CONTACT)
 
 n2dump: $(OBJS_DUMP)
 	$(CC) $(LDFLAGS) -o n2dump $(OBJS_DUMP)
