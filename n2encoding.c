@@ -1472,8 +1472,8 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 	printip (host, astr);
 	
 	printf ("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-	printf ("<host addr=\"%s\" "
-			"date=\"%i\" offset=\"%i\">\n",
+	printf ("<host xmlns=\"http://opensource.xlshosting.com/n2/xmlns/host/1\" "
+			"addr=\"%s\" date=\"%u\" offset=\"%u\">\n",
 			 astr, dt, offs);
 	
 	printf ("  <hostname>%s</hostname>\n", inf->hostname);
