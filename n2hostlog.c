@@ -210,6 +210,9 @@ void print_hostlog_xml (unsigned int addr)
 	char		 dstr[32];
 	char		 flagstr[512];
 	int			 bit;
+	char		 encbuffer[1024];
+	int			 i,j;
+	char		 c;
 	
 	log = load_hostlog (addr);
 	if (! log)
@@ -225,6 +228,39 @@ void print_hostlog_xml (unsigned int addr)
 	{
 		if ((ti = log->entries[crsr].ts))
 		{
+			encbuffer[0] = 0;
+			j = 0;
+			for (i=0; (j<1000) && log->entries[crsr].text[i]; ++i)
+			{
+				c = log->entries[crsr].text[i];
+				if (c == '<')
+				{
+					encbuffer[j++] = '&';
+					encbuffer[j++] = 'l';
+					encbuffer[j++] = 't';
+					encbuffer[j++] = ';';
+				}
+				else if (c == '>')
+				{
+					encbuffer[j++] = '&';
+					encbuffer[j++] = 'g';
+					encbuffer[j++] = 't';
+					encbuffer[j++] = ';';
+				}
+				else if (c == '&')
+				{
+					encbuffer[j++] = '&';
+					encbuffer[j++] = 'a';
+					encbuffer[j++] = 'm';
+					encbuffer[j++] = 'p';
+					encbuffer[j++] = ';';
+				}
+				else
+				{
+					encbuffer[j++] = c;
+				}
+			}
+			
 			ttm = localtime (&ti);
 			sprintf (dstr, "%4i-%02i-%02iT%02i:%02i:%02i",
 						   ttm->tm_year + 1900,
@@ -241,7 +277,7 @@ void print_hostlog_xml (unsigned int addr)
 			        "newstatus=\"%s\" flagged=\"%s\">%s</event>\n",
 			        dstr, STR_STATUS[log->entries[crsr].ostatus & 15],
 			        STR_STATUS[log->entries[crsr].nstatus & 15],
-			        flagstr, log->entries[crsr].text);
+			        flagstr, encbuffer);
 		}
 		crsr = (crsr + 1) & 63;
 	}
