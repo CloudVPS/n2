@@ -261,6 +261,8 @@ void print_hostlog_xml (unsigned int addr)
 				}
 			}
 			
+			encbuffer[j] = 0;
+			
 			ttm = localtime (&ti);
 			sprintf (dstr, "%4i-%02i-%02iT%02i:%02i:%02i",
 						   ttm->tm_year + 1900,
