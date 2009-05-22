@@ -214,12 +214,12 @@ void print_hostlog_xml (unsigned int addr)
 	log = load_hostlog (addr);
 	if (! log)
 	{
-		printf ("  <n2.events/>\n");
+		printf ("  <events/>\n");
 		return;
 	}
 	
 	crsr = (log->pos +1) & 63;
-	printf ("  <n2.events>\n");
+	printf ("  <events>\n");
 	
 	for (count=0; count<64; ++count)
 	{
@@ -237,8 +237,8 @@ void print_hostlog_xml (unsigned int addr)
 			make_flag_string (flagstr, log->entries[crsr].nstatus,
 							  log->entries[crsr].oflags);
 
-			printf ("    <n2.event ts=\"%s\" oldstatus=\"%s\" "
-			        "newstatus=\"%s\" flagged=\"%s\">%s</n2.event>\n",
+			printf ("    <event ts=\"%s\" oldstatus=\"%s\" "
+			        "newstatus=\"%s\" flagged=\"%s\">%s</event>\n",
 			        dstr, STR_STATUS[log->entries[crsr].ostatus & 15],
 			        STR_STATUS[log->entries[crsr].nstatus & 15],
 			        flagstr, log->entries[crsr].text);
@@ -246,5 +246,5 @@ void print_hostlog_xml (unsigned int addr)
 		crsr = (crsr + 1) & 63;
 	}
 	free (log);
-	printf ("  </n2.events>\n");
+	printf ("  </events>\n");
 }
