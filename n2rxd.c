@@ -68,7 +68,6 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 	unsigned int services;			/* Services flags */
 	unsigned int oldservices;		/* Previous services flags */
 	int i;
-	char str[256];
 	hcache_node *cnode;
 	unsigned char isfresh = 0;
 
