@@ -201,7 +201,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 							 "Host changed status");
 					statuslog (rhost, "Status changed to %s",
 							   STR_STATUS[info->status & 15]);
-					handle_status_change(rhost, status, info->status)
+					handle_status_change(rhost, status, info->status);
 				}
 				
 				/* Store the new status in the cache */
