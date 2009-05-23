@@ -115,6 +115,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 		{
 			if (uptime < 600)
 			{
+				handle_status_change(rhost, status, ST_STARTUP_1);
 				status = ST_STARTUP_1;
 				statuslog (rhost, "Reboot detected");
 				hostlog (rhost, status, status, oflags, "Reboot detected");
@@ -554,6 +555,7 @@ void handle_status_change (unsigned long rhost, status_t olds, status_t news)
 	char cmd[256];
 	char ip[64];
 	const char *event;
+	int i;
 	
 	oldstatus = RDSTATUS(olds);
 	newstatus = RDSTATUS(news);
@@ -576,9 +578,9 @@ void handle_status_change (unsigned long rhost, status_t olds, status_t news)
 	}
 	
 	printip (rhost, ip);
-	sprintf (cmd, "/usr/bin/n2event %s %s", ip, event);
-	systemlog ("Sending change notification: %s", cmd);
-	system (cmd);
+	sprintf (cmd, "/usr/bin/n2event %s %s >/dev/null </dev/null", ip, event);
+	i = system (cmd);
+	systemlog ("%s: Sent change notification: %x", ip, i);
 }
 
 #define setMinimum(foo) { if (RDSTATUS(info->status) < foo) \
