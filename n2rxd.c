@@ -570,6 +570,7 @@ void handle_status_change (unsigned long rhost, status_t olds, status_t news)
 	
 	printip (rhost, ip);
 	sprintf (cmd, "/usr/bin/n2event %s %s", ip, event);
+	systemlog ("Sending change notification: %s", cmd);
 	system (cmd);
 }
 
