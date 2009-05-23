@@ -452,6 +452,8 @@ int main (int argc, char *argv[])
 									  "Status changed to STALE");
 							hostlog (ccrsr->addr, ccrsr->status, ST_STALE, 0,
 									 "Host went stale");
+							handle_status_change (ccrsr->addr, ccrsr->status,
+												  ST_STALE);
 							ccrsr->status = ST_STALE;
 							rec_set_status (rec, ST_STALE);
 						}
@@ -472,6 +474,9 @@ int main (int argc, char *argv[])
 											 "Full packet loss");
 									errorlog (ccrsr->addr, "Status changed "
 														   "to DEAD");
+									handle_status_change (ccrsr->addr,
+														  ccrsr->status,
+														  ST_DEAD);
 									ccrsr->status = ST_DEAD;
 								}
 							}
