@@ -36,6 +36,7 @@ void			 systemlog (const char *, ...);
 void			 statuslog (unsigned int, const char *, ...);
 void			 errorlog (unsigned int, const char *);
 void			 eventlog (unsigned int, const char *);
+void			 handle_status_change (unsigned long, status_t, status_t);
 
 
 void			 daemonize (void);
@@ -200,6 +201,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 							 "Host changed status");
 					statuslog (rhost, "Status changed to %s",
 							   STR_STATUS[info->status & 15]);
+					handle_status_change(rhost, status, info->status)
 				}
 				
 				/* Store the new status in the cache */
@@ -695,7 +697,6 @@ int check_alert_status (unsigned long rhost,
 	/* Determine if we changed the status */
 	if (RDSTATUS(info->status) != RDSTATUS(oldstatus))
 	{
-		handle_status_change (rhost, oldstatus, info->status);
 		return 1;
 	}
 	return 0;
