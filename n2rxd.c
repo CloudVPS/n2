@@ -533,6 +533,46 @@ int main (int argc, char *argv[])
 	}
 }
 
+int is_alert_state (status_t s)
+{
+	if (s == ST_ALERT || s == ST_CRITICAL || s == ST_DEAD || s == ST_STALE)
+		return 1;
+		
+	return 0;
+}
+
+void handle_status_change (unsigned long rhost, status_t olds, status_t news)
+{
+	status_t oldstatus, newstatus;
+	char cmd[256];
+	char ip[64];
+	const char *event;
+	
+	oldstatus = RDSTATUS(olds);
+	newstatus = RDSTATUS(news);
+	
+	if (is_alert_state (oldstatus))
+	{
+		if (! is_alert_state (newstatus))
+		{
+			event = "recovery";
+		}
+		else return;
+	}
+	else
+	{
+		if (is_alert_state (newstatus))
+		{
+			event = "problem";
+		}
+		else return;
+	}
+	
+	printip (rhost, ip);
+	sprintf (cmd, "/usr/bin/n2event %s %s", ip, event);
+	system (cmd);
+}
+
 #define setMinimum(foo) { if (RDSTATUS(info->status) < foo) \
 	info->status = MKSTATUS(info->status,foo); }
 
@@ -652,7 +692,11 @@ int check_alert_status (unsigned long rhost,
 	if (hcnode->alertlevel > 40) info->status = MKSTATUS(info->status,ST_CRITICAL);
 	
 	/* Determine if we changed the status */
-	if (RDSTATUS(info->status) != RDSTATUS(oldstatus)) return 1;
+	if (RDSTATUS(info->status) != RDSTATUS(oldstatus))
+	{
+		handle_status_change (rhost, oldstatus, info->status);
+		return 1;
+	}
 	return 0;
 }
 
