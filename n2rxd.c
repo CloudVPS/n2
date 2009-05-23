@@ -560,7 +560,11 @@ void handle_status_change (unsigned long rhost, status_t olds, status_t news)
 	oldstatus = RDSTATUS(olds);
 	newstatus = RDSTATUS(news);
 	
-	if (is_alert_state (oldstatus))
+	if (newstatus == ST_STARTUP_1)
+	{
+		event = "recovery";
+	}
+	else if (is_alert_state (oldstatus))
 	{
 		if (! is_alert_state (newstatus))
 		{
