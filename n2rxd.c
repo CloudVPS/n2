@@ -110,6 +110,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 			systemlog ("%i >= %i", RDSTATUS(status), ST_STALE);
 			handle_status_change(rhost, RDSTATUS(status), ST_OK);
 			status = ST_OK;
+			hcache_setstatus (cache, rhost, ST_OK);
 		}
 		
 		if (uptime < hcache_getuptime (cache, rhost))
