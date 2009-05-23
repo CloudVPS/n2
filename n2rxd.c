@@ -62,7 +62,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 	time_t lasttime;
 	unsigned int uptime;			/* The host's recorded uptime */
 	status_t status; 				/* Status of the current host */
-	oflag_t oflags;					/* Extended problem flags *./
+	oflag_t oflags;					/* Extended problem flags */
 	char str[256];					/* Generic string buffer */
 	netload_rec *rec; 				/*  Disk record (address equals pkt) */
 	unsigned int services;			/* Services flags */
@@ -108,6 +108,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 		
 		if (RDSTATUS(status) >= ST_STALE)
 		{
+			handle_status_change(rhost, RDSTATUS(status), ST_OK)
 			status = ST_OK;
 		}
 		
