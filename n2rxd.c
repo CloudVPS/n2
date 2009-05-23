@@ -107,6 +107,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 		
 		if (RDSTATUS(status) >= ST_STALE)
 		{
+			systemlog ("%i >= %i", RDSTATUS(status), ST_STALE);
 			handle_status_change(rhost, RDSTATUS(status), ST_OK);
 			status = ST_OK;
 		}
