@@ -693,7 +693,7 @@ int check_alert_status (unsigned long rhost,
 		
 		if (hcnode->alertlevel < maxlevel)
 		{
-			hcnode->alertlevel += hadwarning + 4 * hadalert;
+			hcnode->alertlevel += hadwarning + 3 * hadalert;
 			if (hcnode->alertlevel > maxlevel)
 			{
 				hcnode->alertlevel = maxlevel;
