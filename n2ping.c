@@ -319,7 +319,7 @@ void *ping_recv_thread (void *nop)
 				}
 				else
 				{
-					syslog (LOG_ERROR, "ICMP from %08x seq %04x != %04x",
+					syslog (LOG_ERR, "ICMP from %08x seq %04x != %04x",
 							ipaddr, inseq, host->seq & 0xffff);
 				}
 			}
