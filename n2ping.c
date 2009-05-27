@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <syslog.h>
 
 int icmp_ping_socket;
 uid_t runas_uid;
