@@ -182,6 +182,7 @@ void *ping_send_thread (void *nop)
 {
 	ping_rec 	*host;
 	unsigned int roundcount = 0;
+	int			 i = 0;
 
 	while (1)
 	{
@@ -214,8 +215,12 @@ void *ping_send_thread (void *nop)
 			/* Move on */
 			host = host->next;
 			
-			/* Take a nap */
-			musleep (2900 / PINGDB.count);
+			i++;
+			if (i&1)
+			{
+				/* Take a nap */
+				musleep (2900 / PINGDB.count);
+			}
 		}
 	}
 }
