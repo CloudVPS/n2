@@ -253,6 +253,8 @@ void *ping_recv_thread (void *nop)
 	struct ippkt		 pkt;
 	FILE				*fseq;
 	
+	openlog ("n2ping", LOG_PID, LOG_DAEMON);
+	
 	while (1)
 	{
 		/* Receive ICMP packet from the raw socket */
@@ -316,10 +318,8 @@ void *ping_recv_thread (void *nop)
 				}
 				else
 				{
-					printf (": sequence mismatch: %04x != %04x\n", inseq, (host->seq & 0xffff));
-					fseq = fopen ("/tmp/badsequence.dat", "w");
-					fwrite (&pkt, rsz, 1, fseq);
-					fclose (fseq);
+					syslog (LOG_ERROR, "ICMP from %08x seq %04x != %04x",
+							ipaddr, inseq, host->seq & 0xffff);
 				}
 			}
 		}
