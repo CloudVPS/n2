@@ -178,7 +178,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 		/* turn packet into a record */
 		pkt->pos = psize;
 		rec = encode_rec (pkt, time (NULL), status,
-						  pingtime, packetloss);
+						  pingtime, packetloss, oflags);
 	
 		/* Write the record to disk. This may be redundant,
 		   but it will at least guarantee us a saved
@@ -222,6 +222,11 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 			{
 				rec_set_status (rec, info->status);
 				rec_set_oflags (rec, info->oflags);
+				if (info->oflags != oflags)
+				{
+					diskdb_setcurrent (rhost, rec);
+				}
+				
 			}
 			
 			sprintf (str, "Recv packet size=%i "

@@ -363,7 +363,7 @@ int mainloop (void *idontcare)
 		
 #ifdef DEBUG
 		pkt = encode_pkt (&inf, "md5meharder");
-		rec = encode_rec (pkt, time (NULL), ST_OK, 1, 1);
+		rec = encode_rec (pkt, time (NULL), ST_OK, 1, 1, 0);
 		dinf = decode_rec (rec);
 		pool_free (rec);
 		print_info (dinf, 0x7f000001);

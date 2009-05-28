@@ -357,7 +357,8 @@ int validate_pkt (netload_pkt *pkt, const char *key)
  * Convert a packet with md5sum to a disk record.                            *
 \* ------------------------------------------------------------------------- */
 netload_rec *encode_rec (netload_pkt *pkt, time_t ti, status_t st,
-						 unsigned short ping10, unsigned short loss)
+						 unsigned short ping10, unsigned short loss,
+						 unsigned int oflags)
 {
 	short oldpos = pkt->pos;
 	pkt->pos = 0;
@@ -367,7 +368,7 @@ netload_rec *encode_rec (netload_pkt *pkt, time_t ti, status_t st,
 	pkt_print32 (pkt, ti);
 	pkt_print16 (pkt, ping10);
 	pkt_print16 (pkt, loss);
-	pkt_print32 (pkt, 0);
+	pkt_print32 (pkt, oflags);
 	pkt->pos = oldpos;
 	pkt_print8 (pkt, 0);
 	
