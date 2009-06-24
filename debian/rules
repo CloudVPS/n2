@@ -21,7 +21,6 @@ install:
 	install -o root -g root -m 0755 n2pgrep debian/n2rxd/usr/bin/
 	install -o root -g root -m 0755 n2history debian/n2rxd/usr/bin/
 	install -o root -g root -m 0755 n2rawdat debian/n2rxd/usr/bin/
-	install -o root -g root -m 0755 n2control debian/n2rxd/usr/bin/
 	install -o root -g root -m 0755 n2groups debian/n2rxd/usr/bin/
 	install -o root -g root -m 0755 n2analyze debian/n2rxd/usr/bin/
 
