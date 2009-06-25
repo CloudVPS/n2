@@ -1,18 +1,15 @@
 %define version 1.0.1
 
-%define libpath /usr/lib
-%ifarch x86_64
-  %define libpath /usr/lib64
-%endif
-
 Name: n2
 Summary: n2 packages
 Group: Development
 Version: %version
 Source0: n2-%{version}.tar.gz
+Source1: lua-5.1.4.tar.gz
+BuildRequires: readline-devel,ncurses-devel
 Release: 1
 License: GPLv3
-BuildRoot: /var/tmp/%{name}-buildroot
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-build
 %description
 n2 packages
 
@@ -31,11 +28,12 @@ This package consists of the receiver daemon that stores reports from
 nodes running n2rxd, plus tools to inspect those reports.
 
 %prep
-%setup -q
+%setup -q -a 1
 
 %build
 BUILD_ROOT=$RPM_BUILD_ROOT
-LUALIBS='/usr/local/lib/liblua.a -lm -ldl' LUAINC=-I/usr/local/include make
+make -C lua-5.1.4 linux
+LUALIBS='lua-5.1.4/src/liblua.a -lm -ldl' LUAINC='-Ilua-5.1.4/src' make
 
 %install
 BUILD_ROOT=$RPM_BUILD_ROOT
@@ -45,24 +43,24 @@ mkdir -p ${BUILD_ROOT}/etc/n2
 mkdir -p ${BUILD_ROOT}/usr/bin
 mkdir -p ${BUILD_ROOT}/usr/sbin
 
-install -b -o root -g root -m 0755 rpm/n2txd.init ${BUILD_ROOT}/etc/init.d/n2txd
-install -b -o root -g root -m 0644 n2txd.example.conf ${BUILD_ROOT}/etc/n2/
-install -o root -g root -m 0755 n2txd ${BUILD_ROOT}/usr/sbin
+install -b -m 0755 rpm/n2txd.init ${BUILD_ROOT}/etc/init.d/n2txd
+install -b -m 0644 n2txd.example.conf ${BUILD_ROOT}/etc/n2/
+install -m 0755 n2txd ${BUILD_ROOT}/usr/sbin
 
 sed s/n2txd/n2rxd/g < rpm/n2txd.init > rpm/n2rxd.init
-install -b -o root -g root -m 0755 rpm/n2rxd.init ${BUILD_ROOT}/etc/init.d/n2rxd
+install -b -m 0755 rpm/n2rxd.init ${BUILD_ROOT}/etc/init.d/n2rxd
 rm rpm/n2rxd.init
-install -b -o root -g root -m 0644 n2rxd.example.conf ${BUILD_ROOT}/etc/n2/
-install -b -o root -g root -m 0644 analyze.lua ${BUILD_ROOT}/etc/n2/
-install -b -o root -g root -m 0644 analyze-user.lua ${BUILD_ROOT}/etc/n2/analyze-user.lua.example
-install -o root -g root -m 0755 n2rxd ${BUILD_ROOT}/usr/sbin/
-install -o root -g root -m 0755 n2ping ${BUILD_ROOT}/usr/sbin/
-install -o root -g root -m 0755 n2hstat ${BUILD_ROOT}/usr/bin/
-install -o root -g root -m 0755 n2pgrep ${BUILD_ROOT}/usr/bin/
-install -o root -g root -m 0755 n2history ${BUILD_ROOT}/usr/bin/
-install -o root -g root -m 0755 n2rawdat ${BUILD_ROOT}/usr/bin/
-install -o root -g root -m 0755 n2control ${BUILD_ROOT}/usr/bin/
-install -o root -g root -m 0755 n2groups ${BUILD_ROOT}/usr/bin/
+install -b -m 0644 n2rxd.example.conf ${BUILD_ROOT}/etc/n2/
+install -b -m 0644 analyze.lua ${BUILD_ROOT}/etc/n2/
+install -b -m 0644 analyze-user.lua ${BUILD_ROOT}/etc/n2/analyze-user.lua.example
+install -m 0755 n2rxd ${BUILD_ROOT}/usr/sbin/
+install -m 0755 n2ping ${BUILD_ROOT}/usr/sbin/
+install -m 0755 n2analyze ${BUILD_ROOT}/usr/bin/
+install -m 0755 n2hstat ${BUILD_ROOT}/usr/bin/
+install -m 0755 n2pgrep ${BUILD_ROOT}/usr/bin/
+install -m 0755 n2history ${BUILD_ROOT}/usr/bin/
+install -m 0755 n2rawdat ${BUILD_ROOT}/usr/bin/
+install -m 0755 n2groups ${BUILD_ROOT}/usr/bin/
 
 %post n2txd
 grep -qw ^n2 /etc/group || groupadd -f n2 > /dev/null
@@ -76,8 +74,8 @@ grep -qw ^n2 /etc/group || groupadd -f n2 > /dev/null
 grep -qw ^n2 /etc/passwd || useradd n2 -r -g n2 > /dev/null
 install -d -o root -g n2 -m 0750 /etc/n2
 install -d -o n2 -g n2 -m 0750 /var/log/n2
-install -d -o root -g root -m 0755 /var/state
-install -d -o root -g root -m 0755 /var/state/n2
+install -d -m 0755 /var/state
+install -d -m 0755 /var/state/n2
 install -d -o n2 -g n2 -m 0750 /var/state/n2/current
 install -d -o n2 -g n2 -m 0750 /var/state/n2/events
 install -d -o n2 -g n2 -m 0750 /var/state/n2/log
@@ -125,7 +123,7 @@ exit 0
 /etc/n2/n2rxd.example.conf
 /etc/n2/analyze.lua
 /etc/n2/analyze-user.lua.example
-/usr/bin/n2control
+/usr/bin/n2analyze
 /usr/bin/n2history
 /usr/bin/n2rawdat
 /usr/bin/n2groups
@@ -134,3 +132,7 @@ exit 0
 /usr/sbin/n2rxd
 /usr/sbin/n2ping
 /etc/init.d/n2rxd
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
