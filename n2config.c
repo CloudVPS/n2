@@ -221,7 +221,7 @@ svc_match MATCH_HTTP[] = {
 svc_match MATCH_SMTP[] = {
 	{"sendmail", "root", 25},
 	{"exim", "*", 25},
-	{"smtpd", "postfix", 25},
+	{"master", "root", 25},
 	{"qmail-smtpd", "qmaild", 25},
 	{NULL, NULL, 0}
 };
