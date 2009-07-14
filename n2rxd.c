@@ -77,6 +77,11 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 	{
 		pingtime = calc_ping10 (plog);
 		packetloss = calc_loss (plog);
+		if (packetloss != 0)
+		{
+			sprintf (str, "packetloss %i", packetloss);
+			eventlog (rhost, str);
+		}
 		pool_free (plog);
 	}
 	else /* No ping data available; make shit up */
