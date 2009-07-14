@@ -405,7 +405,7 @@ void ping_main_thread (void)
 			}
 
 			host = host->next;
-			musleep (5000 / PINGDB.count);
+			musleep (10000 / PINGDB.count);
 		}
 	}
 }
