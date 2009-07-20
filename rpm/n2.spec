@@ -59,6 +59,7 @@ install -m 0755 n2analyze ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2hstat ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2pgrep ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2history ${BUILD_ROOT}/usr/bin/
+install -m 0755 n2contact ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2rawdat ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2groups ${BUILD_ROOT}/usr/bin/
 
@@ -125,6 +126,7 @@ exit 0
 /etc/n2/analyze-user.lua.example
 /usr/bin/n2analyze
 /usr/bin/n2history
+/usr/bin/n2contact
 /usr/bin/n2rawdat
 /usr/bin/n2groups
 /usr/bin/n2hstat
