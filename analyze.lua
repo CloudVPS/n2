@@ -17,6 +17,7 @@ function pwnage (ctx,env)
 	count = count + ctx.proc.pcount("nobody","perl",90)
 	count = count + ctx.proc.pcount("apache","perl",90)
 	count = count + ctx.proc.pcount("www-data","perl",90)
+	count = count + ctx.proc.pcount("www","perl",90)
 	if count > 24 then return true end
 	return false
 end
