@@ -16,6 +16,7 @@ n2 packages
 %package -n n2txd
 Summary: n2 transmit daemon
 Group: Development
+Obsoletes: n2-n2txd
 %description n2txd
 This is the small agent component that you run on every host you
 want to monitor.
@@ -23,6 +24,7 @@ want to monitor.
 %package -n n2rxd
 Summary: n2 receive daemon
 Group: Development
+Obsoletes: n2-n2rxd
 %description n2rxd
 This package consists of the receiver daemon that stores reports from
 nodes running n2rxd, plus tools to inspect those reports.
