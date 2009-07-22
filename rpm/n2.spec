@@ -13,14 +13,14 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-build
 %description
 n2 packages
 
-%package n2txd
+%package -n n2txd
 Summary: n2 transmit daemon
 Group: Development
 %description n2txd
 This is the small agent component that you run on every host you
 want to monitor.
 
-%package n2rxd
+%package -n n2rxd
 Summary: n2 receive daemon
 Group: Development
 %description n2rxd
