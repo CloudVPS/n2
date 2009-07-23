@@ -1,4 +1,4 @@
-%define version 1.0.1
+%define version 1.0.2
 
 Name: n2
 Summary: n2 packages
@@ -13,17 +13,19 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-build
 %description
 n2 packages
 
-%package n2txd
+%package -n n2txd
 Summary: n2 transmit daemon
 Group: Development
-%description n2txd
+Obsoletes: n2-n2txd
+%description -n n2txd
 This is the small agent component that you run on every host you
 want to monitor.
 
-%package n2rxd
+%package -n n2rxd
 Summary: n2 receive daemon
 Group: Development
-%description n2rxd
+Obsoletes: n2-n2rxd
+%description -n n2rxd
 This package consists of the receiver daemon that stores reports from
 nodes running n2rxd, plus tools to inspect those reports.
 
@@ -59,17 +61,18 @@ install -m 0755 n2analyze ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2hstat ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2pgrep ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2history ${BUILD_ROOT}/usr/bin/
+install -m 0755 n2contact ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2rawdat ${BUILD_ROOT}/usr/bin/
 install -m 0755 n2groups ${BUILD_ROOT}/usr/bin/
 
-%post n2txd
+%post -n n2txd
 grep -qw ^n2 /etc/group || groupadd -f n2 > /dev/null
 grep -qw ^n2 /etc/passwd || useradd n2 -r -g n2 > /dev/null
 install -d -o root -g n2 -m 0750 /etc/n2
 echo .. please create a config from the sample and start n2txd
 chkconfig --level 2345 n2txd on
 
-%post n2rxd
+%post -n n2rxd
 grep -qw ^n2 /etc/group || groupadd -f n2 > /dev/null
 grep -qw ^n2 /etc/passwd || useradd n2 -r -g n2 > /dev/null
 install -d -o root -g n2 -m 0750 /etc/n2
@@ -84,40 +87,40 @@ install -d -o n2 -g n2 -m 0750 /var/state/n2/tmp
 echo .. please create a config from the sample and start n2rxd
 chkconfig --level 2345 n2rxd on
 
-%preun n2txd
+%preun -n n2txd
 if [ "$1" = 0 ] ; then
 	service n2txd stop > /dev/null 2>&1
 	chkconfig --del n2txd
 fi
 exit 0
 
-%postun n2txd
+%postun -n n2txd
 if [ "$1" -ge 1 ]; then
 	service n2txd condrestart > /dev/null 2>&1
 fi
 exit 0 
 
-%preun n2rxd
+%preun -n n2rxd
 if [ "$1" = 0 ] ; then
 	service n2rxd stop > /dev/null 2>&1
 	chkconfig --del n2rxd
 fi
 exit 0
 
-%postun n2rxd
+%postun -n n2rxd
 if [ "$1" -ge 1 ]; then
 	service n2rxd condrestart > /dev/null 2>&1
 fi
 exit 0 
 
-%files n2txd
+%files -n n2txd
 %defattr(-,root,root)
 %dir /etc/n2
 /etc/n2/n2txd.example.conf
 /etc/init.d/n2txd
 /usr/sbin/n2txd
 
-%files n2rxd
+%files -n n2rxd
 %defattr(-,root,root)
 %dir /etc/n2
 /etc/n2/n2rxd.example.conf
@@ -125,6 +128,7 @@ exit 0
 /etc/n2/analyze-user.lua.example
 /usr/bin/n2analyze
 /usr/bin/n2history
+/usr/bin/n2contact
 /usr/bin/n2rawdat
 /usr/bin/n2groups
 /usr/bin/n2hstat

@@ -227,7 +227,7 @@ int main (int argc, char *argv[])
 	
 	if (! CONF.servers)
 	{
-		fprintf (stderr, "%% No servers configured in n2txd.cf\n");
+		fprintf (stderr, "%% No servers configured in n2txd.conf\n");
 		exit (1);
 	}
 	
