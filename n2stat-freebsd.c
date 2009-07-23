@@ -28,6 +28,7 @@
 #include <time.h>
 #include <limits.h>
 #include <pwd.h>
+#include <paths.h>
 #include <stdlib.h>
 #include <sys/sysctl.h>
 #include <sys/proc.h>
@@ -109,7 +110,7 @@ void gather_init (void)
 	sysctl ((int *) mib, 2, &ncpu, &len, NULL, 0);
 	GLOB.procs.ncpu = ncpu;
 	
-	GLOB.kvm = kvm_open (NULL, NULL, NULL, O_RDONLY, "n2stat");
+	GLOB.kvm = kvm_open (NULL, _PATH_DEVNULL, NULL, O_RDONLY, "n2stat");
 }
 
 /* =========================================================================== *\
