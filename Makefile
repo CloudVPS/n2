@@ -1,21 +1,31 @@
 ifdef STATIC
   CFLAGS+=-DSTATIC
-  LDFLAGS=-static
+  LDFLAGS+=-static
 endif
 
 LUA?=lua
 LUALIBS?=`pkg-config --libs $(LUA)`
 LUAINC?=`pkg-config --cflags $(LUA)`
 
+OSNAME?=$(shell uname -s | tr A-Z a-z)
+OSREL?=$(shell uname -r)
+OSRELMAJOR?=$(shell uname -r | cut -f1 -d.)
+
+ifeq (freebsd,$(OSNAME))
+  LDFLAGS+=-lkvm
+endif
+
+CFLAGS+=-DOSNAME=$(OSNAME) -DOSREL=$(OSREL) -DOSRELMAJOR=$(OSRELMAJOR)
+
 OBJS_RXD = iptypes.o hcache.o md5.o n2acl.o n2args.o n2config.o n2diskdb.o \
 	   n2encoding.o n2pingdb.o n2rxd.o n2hostlog.o n2malloc.o
 
 OBJS_TXD = iptypes.o md5.o n2args.o n2config.o n2acl.o n2encoding.o \
-	   n2txd.o n2stat-linux.o tproc.o n2hostlog.o n2malloc.o proctitle.o \
+	   n2txd.o n2stat-$(OSNAME).o tproc.o n2hostlog.o n2malloc.o proctitle.o \
 	   http_fetcher.o http_error_codes.o xenvps.o
 
 OBJS_TXD_DEBUG = iptypes.o md5.o n2args.o n2config.o n2acl.o n2encoding.o \
-                 n2txd-debug.o n2stat-linux-debug.o tproc.o n2hostlog.o \
+                 n2txd-debug.o n2stat-$(OSNAME)-debug.o tproc.o n2hostlog.o \
                  n2malloc.o proctitle.o http_fetcher.o \
                  http_error_codes.o xenvps.o
 
@@ -161,8 +171,8 @@ n2acl-test.o: n2acl.c n2acl.h
 n2txd-debug.o:
 	$(CC) $(LDFLAGS) $(LDFLAGS) -DDEBUG -I. -c n2txd.c -o n2txd-debug.o
 	
-n2stat-linux-debug.o:
-	$(CC) $(LDFLAGS) -DDEBUG -I. -c n2stat-linux.c -o n2stat-linux-debug.o
+n2stat-$(OSNAME)-debug.o:
+	$(CC) $(LDFLAGS) -DDEBUG -I. -c n2stat-$(OSNAME).c -o n2stat-$(OSNAME)-debug.o
 
 clean:
 	rm -f *.o n2acl-test n2dump n2conftool n2groups n2reconf n2control n2txd n2txd-debug n2rxd n2ping n2hstat n2history n2rawdat n2pgrep
