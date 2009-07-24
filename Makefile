@@ -4,8 +4,8 @@ ifdef STATIC
 endif
 
 LUA?=lua
-LUALIBS?=`pkg-config --libs $(LUA)`
-LUAINC?=`pkg-config --cflags $(LUA)`
+LUALIBS?=$(shell pkg-config --libs $(LUA))
+LUAINC?=$(shell pkg-config --cflags $(LUA))
 
 OSNAME?=$(shell uname -s | tr A-Z a-z)
 OSREL?=$(shell uname -r)
