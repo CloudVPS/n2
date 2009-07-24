@@ -236,6 +236,7 @@ int main (int argc, char *argv[])
 #else
 	daemonize(argv);
 #endif
+	exit(1);
 }
 
 int mainloop (void *idontcare)

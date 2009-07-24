@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <syslog.h>
+#include <arpa/inet.h>
 
 int icmp_ping_socket;
 uid_t runas_uid;
@@ -511,6 +512,7 @@ int main (int argc, char *argv[])
 	pthread_detach (mythr);
 	
 	ping_main_thread();
+	exit(1);
 }
 
 /* ------------------------------------------------------------------------- *\

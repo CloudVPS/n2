@@ -1,5 +1,7 @@
 #include "n2diskdb.h"
 #include "datatypes.h"
+#include "iptypes.h"
+#include "n2encoding.h"
 
 #include <sys/time.h>
 #include <time.h>

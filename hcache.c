@@ -1,6 +1,7 @@
 #include "hcache.h"
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
 #ifdef DEBUG
  #define dprintf printf

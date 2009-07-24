@@ -2,6 +2,7 @@
 #include "n2diskdb.h"
 #include "n2encoding.h"
 #include "iptypes.h"
+#include "n2malloc.h"
 
 #include <stdio.h>
 #include <stdlib.h>

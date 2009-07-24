@@ -68,6 +68,7 @@ n2arglist *new_args (void)
 	res = (n2arglist *) pool_alloc (sizeof (n2arglist));
 	res->argc = 0;
 	res->argv = NULL;
+	return res;
 }
 
 /* ------------------------------------------------------------------------- *\

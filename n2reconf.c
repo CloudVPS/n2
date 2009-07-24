@@ -184,7 +184,7 @@ confline *setstatement (confline *conf, const char *stm, const char *set)
 {
 	confline *c;
 	
-	if (! conf) return;
+	if (! conf) return NULL;
 	if ((c = findstatement (conf, stm)))
 	{
 		strncpy (c->line, set, MAXLINESIZE-1);
