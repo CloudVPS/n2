@@ -4,6 +4,7 @@
 #include "iptypes.h"
 #include "n2acl.h"
 #include "n2config.h"
+#include "n2malloc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -218,4 +219,5 @@ int main (int argc, char *argv[])
 	{
 		printf ("</nl.madscience.svc.n2.groups>\n");
 	}
+	exit(0);
 }

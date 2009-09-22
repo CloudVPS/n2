@@ -186,6 +186,8 @@ acl_contact *acl_get_contacts (acl *a);
 void		 acl_init (void);
 const char	*acl_get_key (acl *a);
 acl			*acl_create (unsigned long addr, unsigned long mask);
+acl_contact *acl_get_contacts (acl *a);
+void		 acl_add_contact (acl *a, const char *url);
 acl			*acl_match_mask (unsigned long addr, unsigned long mask);
 acl			*acl_match (unsigned long addr);
 void		 acl_clear (void);

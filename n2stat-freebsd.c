@@ -45,6 +45,10 @@
 #include <netinet/tcp_fsm.h>
 #include <netinet/tcp_var.h>
 
+#if OSRELMAJOR >= 5
+  #define FREEBSD5
+#endif
+
 /* --------------------------------------------------------------------------- *\
  * Internal datatypes                                                          *
 \* --------------------------------------------------------------------------- */

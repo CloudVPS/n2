@@ -6,6 +6,9 @@
 #include "n2diskdb.h"
 #include "n2hostlog.h"
 #include "hcache.h"
+#include "n2malloc.h"
+#include "iptypes.h"
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>

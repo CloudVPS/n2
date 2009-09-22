@@ -300,7 +300,7 @@ acl *acl_create (unsigned long addr, unsigned long netmask)
 			{
 				/* If res turns out to be root node's supernet, we are
 				   handling the devil's spawn, so abort. */
-				if (crs->parent == NULL) return;
+				if (crs->parent == NULL) return NULL;
 				
 				/* We'll hang the result node under the current parent */
 				res->parent = crs->parent;
