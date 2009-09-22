@@ -215,7 +215,7 @@ svc_match MATCH_HTTP[] = {
 	{"httpd", "root", 80},
 	{"apache", "root", 80},
 	{"apache2","root", 80},
-	{"lighttpd", "root", 80},
+	{"lighttpd", "*", 80},
 	{NULL,NULL,0}
 };
 svc_match MATCH_SMTP[] = {

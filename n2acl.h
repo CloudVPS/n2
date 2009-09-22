@@ -115,7 +115,7 @@ typedef struct groupdb_struc
 extern groupdb GROUPS;
 
 /* ------------------------------------------------------------------------- *\
- * This voooo-macro creates accessor functions for the acl structure. It     *
+ * This voodoo-macro creates accessor functions for the acl structure. It    *
  * allows some of the warning/alert values to be left as 'undefined', which  *
  * will signal the accessor to recurse up to the parent acl for a value. In  *
  * n2acl.c we define IMPLEMENT_ACLPROP before including this file to get     *

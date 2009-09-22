@@ -681,11 +681,23 @@ int check_alert_status (unsigned long rhost,
 	ACLHANDLE_FLAG(loss,over,loss,FLAG_LOSS);
 	ACLHANDLE_FLAG(rtt,over,rtt,FLAG_RTT);
 	ACLHANDLE_FLAG(loadavg,over,loadavg,FLAG_LOAD);
-	ACLHANDLE_FLAG(cpu,over,info->cpu,FLAG_LOAD);
 	ACLHANDLE_OFLAG(ram,under,info->kmemfree,OFLAG_RAM);
 	ACLHANDLE_OFLAG(swap,under,info->kswapfree,OFLAG_SWAP);
 	ACLHANDLE_OFLAG(netin,over,info->netin,OFLAG_NETIN);
 	ACLHANDLE_OFLAG(netout,over,info->netout,OFLAG_NETOUT);
+
+	/* Be more lenient about CPU, basically don't recognize it as
+	   an ALERT event ever */
+	if (acl_isover_cpu_alert (cacl,info->cpu))
+	{
+		SETSTATUSFLAG(info->status,FLAG_LOAD);
+		hadwarning++;
+	}
+	else if (acl_isover_cpu_warning (cacl,info->cpu))
+	{
+		SETSTATUSFLAG(info->status,FLAG_LOAD);
+		hadwarning++;
+	}
 
 	if ((hadwarning == 0) && (hadalert == 0))
 	{
