@@ -954,6 +954,12 @@ void populate_cache (hcache *cache)
 	ti = time (NULL);
 
 	dir = opendir ("/var/state/n2/current");
+	if (! dir)
+	{
+		systemlog ("Could not open /var/state/n2/current");
+		exit (1);
+	}
+	
 	while (de = readdir (dir))
 	{
 		addr = atoip (de->d_name);
