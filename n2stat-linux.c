@@ -1007,7 +1007,7 @@ void gather_ports (netload_info *inf)
 				if (sum < lowcnt)
 				{
 					lowcnt = sum;
-					lowidx = i;
+					lowidx = inf->nports;
 				}
 				
 				inf->nports++;
