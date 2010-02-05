@@ -449,7 +449,7 @@ int main (int argc, char *argv[])
 				ccrsr = cache->hash[i];
 				while (ccrsr) /* Iterate over the cache nodes */
 				{
-					if ((ti - ccrsr->lastseen) > 59) /* It's dead, Jim */
+					if ((ti - ccrsr->lastseen) > 65) /* It's dead, Jim */
 					{
 						/* Update the disk record with the status and ping
 						   information */
