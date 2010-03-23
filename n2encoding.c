@@ -241,7 +241,7 @@ netload_pkt *encode_pkt (netload_info *inf, const char *key)
 	}
 	
 	/* Add recorded tcp port entries */
-	
+	dprintf (">>> encode %i ports\n", inf->nports);
 	pkt_print8 (pkt, inf->nports);
 	for (i=0; i<inf->nports; ++i)
 	{

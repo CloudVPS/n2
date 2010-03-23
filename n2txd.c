@@ -1,9 +1,3 @@
-#ifdef DEBUG
- #define dprintf printf
-#else
- #define dprintf //
-#endif
-
 #include "n2config.h"
 #include "datatypes.h"
 #include "n2encoding.h"
@@ -23,6 +17,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sched.h>
+
+#ifdef DEBUG
+ #define dprintf printf
+#else
+ #define dprintf //
+#endif
 
 void daemonize (char **);
 unsigned int huntservices (portlist *, procrun *);
@@ -347,6 +347,7 @@ int mainloop (void *idontcare)
 		if (CONF.modstatus) gather_modstatus (&inf);
 		if ((CONF.encoding & ENCODE_TCPSTAT) == 0)
 		{
+			dprintf (">>> not encoding tcp ports\n");
 			inf.nports = 0;
 		}
 		if (CONF.encoding & ENCODE_LOGINS)

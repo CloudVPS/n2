@@ -994,51 +994,36 @@ void gather_ports (netload_info *inf)
 	{
 		if (GLOB.ports[i][0])
 		{
-			if (inf->nports < 10)
+			dprintf ("Evaluating port %i\n", i);
+			for (j=0; j<10; ++j)
 			{
-				#define npthis inf->ports[inf->nports]
-				
-				npthis.port = i;
-				npthis.nestab = GLOB.ports[i][1];
-				npthis.nother = GLOB.ports[i][2];
-				
-				sum = npthis.nestab + npthis.nother;
-				
-				if (sum < lowcnt)
+				dprintf ("Position %i\n", j);
+				#define npthis inf->ports[j]
+				if (j>= inf->nports)
 				{
-					lowcnt = sum;
-					lowidx = inf->nports;
-				}
-				
-				inf->nports++;
-				
-				#undef npthis
-			}
-			else
-			{
-				#define npthis inf->ports[lowidx]
-				
-				sum = GLOB.ports[i][1]+GLOB.ports[i][2];
-				
-				if (sum > (npthis.nestab + npthis.nother))
-				{
+					dprintf ("Last position, add\n");
 					npthis.port = i;
 					npthis.nestab = GLOB.ports[i][1];
 					npthis.nother = GLOB.ports[i][2];
-					
-					lowcnt = 65535;
-					for (j=0; j<10; ++j)
-					{
-						sum = inf->ports[j].nestab + inf->ports[j].nother;
-						if ( sum < lowcnt)
-						{
-							lowcnt = sum;
-							lowidx = j;
-						}
-					}
+					inf->nports = j+1;
+					break;
 				}
 				
-				#undef npthis
+				sum = npthis.nestab + npthis.nother;
+				if (sum < GLOB.ports[i][1]+GLOB.ports[i][2])
+				{
+					dprintf ("sum higher\n");
+					if (j<9)
+					{
+						dprintf ("move\n");
+						memmove (inf->ports+j+1, inf->ports+j,
+								 (9-j) * sizeof (short[3]));
+					}
+					npthis.port = i;
+					npthis.nestab = GLOB.ports[i][1];
+					npthis.nother = GLOB.ports[i][2];
+					break;
+				}
 			}
 		}
 	}
