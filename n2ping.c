@@ -104,6 +104,10 @@ void send_ping_pkt (unsigned long ip, unsigned int seq)
 	unsigned char buf[HDRLEN+DATALEN];
 	struct icmp *icp;
 	int rsize;
+	const char *fil="n2v1";
+	int i;
+	
+	for (i=0; i<(HDRLEN+DATALEN); ++i) buf[i] = fil[i&3];
 	
 	taddr.sin_addr.s_addr = htonl (ip);
 	taddr.sin_port = 0;
