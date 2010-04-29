@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include <strings.h>
 
 FILE *LOG;
 time_t STARTTIME;
@@ -31,6 +32,27 @@ extern const char *STR_STATUS[];
  #define dprintf //
 #endif
 
+typedef struct netload_queued_pkt_struc
+{
+	unsigned char data[640];
+	size_t psize;
+	struct sockaddr_in remote_addr;
+} netload_queued_pkt;
+
+typedef struct netload_queue_struc
+{
+	netload_queued_pkt queue[128];
+	volatile unsigned int rpos;
+	volatile unsigned int wpos;
+	pthread_mutexattr_t attr;
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
+	pthread_attr_t tattr;
+	pthread_t      thread;
+} netload_queue;
+
+int				 UDPSOCK;
+netload_queue	 QUEUE;
 
 void			 populate_cache (hcache *);
 int				 check_alert_status (unsigned long, netload_info *,
@@ -40,11 +62,86 @@ void			 statuslog (unsigned int, const char *, ...);
 void			 errorlog (unsigned int, const char *);
 void			 eventlog (unsigned int, const char *);
 void			 handle_status_change (unsigned long, status_t, status_t);
-
+void			 udp_receive_thread (void *param);
 
 void			 daemonize (void);
 void			 huphandler (int);
 
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION udp_queue_init                                                   *
+ * -----------------------                                                   *
+ * Initializes the global netload_queue instance and creates the background  *
+ * thread. The global UDP socket SOCK should already be initialized and      *
+ * listening before calling this function.                                   *
+\* ------------------------------------------------------------------------- */
+void udp_queue_init (void)
+{
+	bzero (&QUEUE, sizeof(QUEUE));
+	pthread_mutexattr_init (&QUEUE.attr);
+	pthread_mutex_init (&QUEUE.mutex, &QUEUE.attr);
+	pthread_cond_init (&QUEUE.cond, NULL);
+	
+	pthread_attr_init (&QUEUE.tattr);
+	pthread_create (&QUEUE.thread, &QUEUE.attr, udp_receive_thread, NULL);
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION udp_receive_thread                                               *
+ * ---------------------------                                               *
+ * This function will run inside a background thread. It is responsible for  *
+ * getting packet data out of the udp socket as soon as possible.            *
+\* ------------------------------------------------------------------------- */
+void udp_receive_thread (void *param)
+{
+	int rsize = sizeof (struct sockaddr_in);
+	
+	while (1)
+	{
+		bzero (QUEUE.queue + QUEUE.wpos, sizeof (netload_queued_pkt));
+		QUEUE.queue[QUEUE.wpos].psize = 
+			recvfrom (UDPSOCK, QUEUE.queue[QUEUE.wpos].data, 640, 0,
+					  (struct sockaddr *) &(QUEUE.queue[QUEUE.wpos].remote_addr),
+					  &rsize);
+		
+		if (QUEUE.queue[QUEUE.wpos].psize > 25)
+		{
+			QUEUE.wpos = (QUEUE.wpos+1) & 127;
+			pthread_mutex_lock (&QUEUE.mutex);
+			pthread_cond_signal (&QUEUE.cond);
+			pthread_mutex_unlock (&QUEUE.mutex);
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION udp_read_packet                                                  *
+ * ------------------------                                                  *
+ * Reads a packet off the packet queue created by the receiver thread. The   *
+ * queue has a read- and write-cursor. If both point to the same location,   *
+ * this function will wait on the queue's pthread conditional.               *
+\* ------------------------------------------------------------------------- */
+size_t udp_read_packet (unsigned char *data, struct sockaddr_in *addr)
+{
+	size_t res;
+	while (QUEUE.wpos == QUEUE.rpos)
+	{
+		pthread_mutex_lock (&QUEUE.mutex);
+		pthread_cond_wait (&QUEUE.cond, &QUEUE.mutex);
+		pthread_mutex_unlock (&QUEUE.mutex);
+	}
+	
+	memcpy (data, QUEUE.queue[QUEUE.rpos].data, 640);
+	memcpy (addr, &(QUEUE.queue[QUEUE.rpos].remote_addr), sizeof(struct sockaddr_in));
+	res = QUEUE.queue[QUEUE.rpos].psize;
+	QUEUE.rpos = (QUEUE.rpos + 1) & 127;
+	return res;
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION save_mangled_packet                                              *
+ * ----------------------------                                              *
+ * Write contents of a packet to /var/state/n2/mangled_packet.               *
+\* ------------------------------------------------------------------------- */
 void save_mangled_packet (netload_pkt *pkt)
 {
 	FILE *f;
@@ -54,6 +151,11 @@ void save_mangled_packet (netload_pkt *pkt)
 	fclose (f);
 }
 
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION handle_packet                                                    *
+ * ----------------------                                                    *
+ * Do all necessary handling for a single n2 packet.                         *
+\* ------------------------------------------------------------------------- */
 void handle_packet (netload_pkt *pkt, unsigned long rhost,
 					hcache *cache, size_t psize,
 					netload_info *info, acl *cacl)
@@ -277,8 +379,6 @@ int main (int argc, char *argv[])
 {
 	struct sockaddr_in listen_addr; /* For the listening socket */
 	struct sockaddr_in remote_addr; /* To keep track of the remote address */
-	int sock; 						/* The UDP socket */
-	socklen_t remote_sz; 			/* We need that to get the peer address */
 	
 	time_t ti; 						/* Current time */
 	time_t lastclean; 				/* Time of last stale host check */
@@ -356,8 +456,8 @@ int main (int argc, char *argv[])
 	listen_addr.sin_port = htons (CONF.listenport);
 	
 	/* Create the socket and bind it */
-	sock = socket (AF_INET, SOCK_DGRAM, 0);
-	if (bind (sock,(struct sockaddr *) &listen_addr, sizeof(listen_addr))!= 0)
+	UDPSOCK = socket (AF_INET, SOCK_DGRAM, 0);
+	if (bind (UDPSOCK,(struct sockaddr *) &listen_addr, sizeof(listen_addr))!= 0)
 	{
 		fprintf (stderr, "%% Error creating udp listener\n");
 		exit (1);
@@ -371,6 +471,9 @@ int main (int argc, char *argv[])
 	
 	populate_cache (cache);
 	systemlog ("Cache populated");
+	
+	udp_queue_init ();
+	systemlog ("Receiver thread initialized");
 	
 	/* Here the main loop starts */
 	while (1)
@@ -391,10 +494,7 @@ int main (int argc, char *argv[])
 		cacl = NULL;
 		
 		/* Suck a packet off the wire */
-		remote_sz = sizeof (remote_addr);
-		psize = recvfrom (sock, pkt, 640, 0, 
-						  (struct sockaddr *) &remote_addr,
-						  &remote_sz);
+		psize = udp_read_packet (pkt->data, &remote_addr);
 		
 		/* Store the peer address data */
 		rhost = ntohl (remote_addr.sin_addr.s_addr);
@@ -556,6 +656,11 @@ int main (int argc, char *argv[])
 	}
 }
 
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION is_alert_state                                                   *
+ * -----------------------                                                   *
+ * Returns 1 for any status_t that is ST_ALERT or worse.                     *
+\* ------------------------------------------------------------------------- */
 int is_alert_state (status_t s)
 {
 	if (s == ST_ALERT || s == ST_CRITICAL || s == ST_DEAD || s == ST_STALE)
@@ -564,6 +669,11 @@ int is_alert_state (status_t s)
 	return 0;
 }
 
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION handle_status_change                                             *
+ * -----------------------------                                             *
+ * Propagate status changtes to n2event / n2notifyd.                         *
+\* ------------------------------------------------------------------------- */
 void handle_status_change (unsigned long rhost, status_t olds, status_t news)
 {
 	status_t oldstatus, newstatus;
