@@ -225,7 +225,7 @@ void *ping_send_thread (void *nop)
 			if (i&1)
 			{
 				/* Take a nap */
-				musleep (2900 / PINGDB.count);
+				musleep (5800 / PINGDB.count);
 			}
 		}
 	}
