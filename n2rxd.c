@@ -923,7 +923,7 @@ void statuslog (unsigned int host, const char *fmt, ...)
 	time_t t;
 	
 	/* Bail if the logfile is not open */
-	if (! LOG) return;
+	if (! LOG.f) return;
 
 	/* Format the date string */
 	t = time (NULL);
@@ -956,7 +956,7 @@ void errorlog (unsigned int host, const char *crime)
 	time_t t;
 
 	/* Bail if the logfile is not open */
-	if (! LOG) return;
+	if (! LOG.f) return;
 
 	/* Only at the right loglevels */
 	if ((CONF.log == LOG_MALFORMED) || (CONF.log == LOG_ALL))
@@ -988,7 +988,7 @@ void eventlog (unsigned int host, const char *whatup)
 
 
 	/* Bail if the logfile is not open */
-	if (! LOG) return;
+	if (! LOG.f) return;
 
 	/* Only at the right loglevels */
 	if ((CONF.log == LOG_EVENTS) || (CONF.log == LOG_ALL))
