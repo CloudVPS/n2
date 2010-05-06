@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <strings.h>
 
-FILE *LOG;
 time_t STARTTIME;
 
 extern const char *STR_STATUS[];
@@ -41,7 +40,7 @@ typedef struct netload_queued_pkt_struc
 
 typedef struct netload_queue_struc
 {
-	netload_queued_pkt queue[128];
+	netload_queued_pkt queue[4096];
 	volatile unsigned int rpos;
 	volatile unsigned int wpos;
 	pthread_mutexattr_t attr;
@@ -51,8 +50,16 @@ typedef struct netload_queue_struc
 	pthread_t      thread;
 } netload_queue;
 
+typedef struct netload_logmeta_struc
+{
+	FILE *f;
+	pthread_mutexattr_t attr;
+	pthread_mutex_t mutex;
+} netload_logmeta;
+
 int				 UDPSOCK;
 netload_queue	 QUEUE;
+netload_logmeta	 LOG;
 
 void			 populate_cache (hcache *);
 int				 check_alert_status (unsigned long, netload_info *,
@@ -85,6 +92,21 @@ void udp_queue_init (void)
 	pthread_create (&QUEUE.thread, &QUEUE.attr, udp_receive_thread, NULL);
 }
 
+void log_init (void)
+{
+	if (CONF.log != LOG_NONE)
+	{
+		LOG.f = fopen (CONF.logfile, "a");
+	}
+	else
+	{
+		LOG.f = NULL;
+	}
+	
+	pthread_mutexattr_init (&LOG.attr);
+	pthread_mutex_init (&LOG.mutex, &LOG.attr);
+}
+
 /* ------------------------------------------------------------------------- *\
  * FUNCTION udp_receive_thread                                               *
  * ---------------------------                                               *
@@ -94,6 +116,8 @@ void udp_queue_init (void)
 void udp_receive_thread (void *param)
 {
 	int rsize = sizeof (struct sockaddr_in);
+	int backlog;
+	int errcnt = 0;
 	
 	while (1)
 	{
@@ -105,7 +129,20 @@ void udp_receive_thread (void *param)
 		
 		if (QUEUE.queue[QUEUE.wpos].psize > 25)
 		{
-			QUEUE.wpos = (QUEUE.wpos+1) & 127;
+			QUEUE.wpos = (QUEUE.wpos+1) & 4095;
+			
+			backlog = QUEUE.wpos - QUEUE.rpos;
+			if (backlog < 0) backlog += 4096;
+			
+			if (backlog > 16)
+			{
+				if (! (errcnt & 31))
+				{
+					systemlog ("Backlog: %i", backlog);
+				}
+				errcnt++;
+			}
+			
 			pthread_mutex_lock (&QUEUE.mutex);
 			pthread_cond_signal (&QUEUE.cond);
 			pthread_mutex_unlock (&QUEUE.mutex);
@@ -133,7 +170,7 @@ size_t udp_read_packet (unsigned char *data, struct sockaddr_in *addr)
 	memcpy (data, QUEUE.queue[QUEUE.rpos].data, 640);
 	memcpy (addr, &(QUEUE.queue[QUEUE.rpos].remote_addr), sizeof(struct sockaddr_in));
 	res = QUEUE.queue[QUEUE.rpos].psize;
-	QUEUE.rpos = (QUEUE.rpos + 1) & 127;
+	QUEUE.rpos = (QUEUE.rpos + 1) & 4095;
 	return res;
 }
 
@@ -424,15 +461,7 @@ int main (int argc, char *argv[])
 	/* This will keep the reaper off our backs for the first 15 seconds */
 	lastclean = time (NULL);
 
-	/* Set up the logfile, if log wasn't set to none */
-	if (CONF.log != LOG_NONE)
-	{
-		LOG = fopen (CONF.logfile, "a");
-	}
-	else
-	{
-		LOG = NULL; /* Who needs booleans when you've got pointers? */
-	}
+	log_init ();
 	
 	/* FIXME: stupid n2config fills in a default so this is no way to
 	          spot a missing configfile */
@@ -865,7 +894,7 @@ void systemlog (const char *fmt, ...)
 	char tbuf[32];
 	time_t t;
 	
-	if (! LOG) return;
+	if (! LOG.f) return;
 
 	t = time (NULL);
 	ctime_r (&t, tbuf);
@@ -875,8 +904,10 @@ void systemlog (const char *fmt, ...)
 	vsnprintf (buffer, 512, fmt, ap);
 	va_end (ap);
 
-	fprintf (LOG, "%%SYS%% %s %s\n", tbuf, buffer);
-	fflush (LOG);
+	pthread_mutex_lock (&LOG.mutex);
+	fprintf (LOG.f, "%%SYS%% %s %s\n", tbuf, buffer);
+	fflush (LOG.f);
+	pthread_mutex_unlock (&LOG.mutex);
 }
 
 /* ------------------------------------------------------------------------- *\
@@ -905,10 +936,12 @@ void statuslog (unsigned int host, const char *fmt, ...)
 	va_end (ap);
 
 	/* Write to file */
-	fprintf (LOG, "%%STX%% %s %i.%i.%i.%i: %s\n", tbuf,
+	pthread_mutex_lock (&LOG.mutex);
+	fprintf (LOG.f, "%%STX%% %s %i.%i.%i.%i: %s\n", tbuf,
 		     BYTE(host,3), BYTE(host,2), BYTE(host,1), BYTE(host,0),
 			 buffer);
-	fflush (LOG);
+	fflush (LOG.f);
+	pthread_mutex_unlock (&LOG.mutex);
 }
 
 /* ------------------------------------------------------------------------- *\
@@ -933,10 +966,12 @@ void errorlog (unsigned int host, const char *crime)
 		ctime_r (&t, tbuf);
 		tbuf[24] = 0;
 	
-		fprintf (LOG, "%%ERR%% %s %i.%i.%i.%i: %s\n", tbuf,
+		pthread_mutex_lock (&LOG.mutex);
+		fprintf (LOG.f, "%%ERR%% %s %i.%i.%i.%i: %s\n", tbuf,
 			     BYTE(host,3), BYTE(host,2), BYTE(host,1), BYTE(host,0),
 			     crime);
-		fflush (LOG);
+		fflush (LOG.f);
+		pthread_mutex_unlock (&LOG.mutex);
 	}
 }
 
@@ -963,10 +998,12 @@ void eventlog (unsigned int host, const char *whatup)
 		ctime_r (&t, tbuf);
 		tbuf[24] = 0;
 	
-		fprintf (LOG, "%%EVT%% %s %i.%i.%i.%i: %s\n", tbuf,
+		pthread_mutex_lock (&LOG.mutex);
+		fprintf (LOG.f, "%%EVT%% %s %i.%i.%i.%i: %s\n", tbuf,
 			     BYTE(host,3), BYTE(host,2), BYTE(host,1), BYTE(host,0),
 			     whatup);
-		fflush (LOG);
+		fflush (LOG.f);
+		pthread_mutex_unlock (&LOG.mutex);
 	}
 }
 
