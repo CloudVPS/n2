@@ -145,7 +145,7 @@ n2txd-debug: $(OBJS_TXD_DEBUG)
 	$(CC) $(LDFLAGS) -o n2txd-debug $(OBJS_TXD_DEBUG)
 
 n2rxd: $(OBJS_RXD)
-	$(CC) $(LDFLAGS) -o n2rxd $(OBJS_RXD)
+	$(CC) $(LDFLAGS) -o n2rxd $(OBJS_RXD) -lpthread
 
 n2ping: $(OBJS_PING)
 	$(CC) $(LDFLAGS) -o n2ping $(OBJS_PING) -lpthread
