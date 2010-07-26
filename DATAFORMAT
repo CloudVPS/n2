@@ -159,7 +159,7 @@ int8    1       1       1       ncpu        cpu-count
         ----    ----    ----
         6       23      11
 
-### FORMAT OF A <port> RECORD
+### FORMAT OF A <prec> RECORD
 
 -------v-------v-------v-------v-----------v----------------------------------
 TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
