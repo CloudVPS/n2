@@ -16,6 +16,7 @@ class win32(blank):
         c = win32pdh.AddCounter(h, path)
         win32pdh.CollectQueryData(h)
         discard, v = win32pdh.GetFormattedCounterValue(c, fmt)
+        win32pdh.CloseQuery(h)
         return v
         
     def getusers(self):
