@@ -203,6 +203,10 @@ netload_pkt *encode_pkt (netload_info *inf, const char *key)
 	pkt_print24 (pkt, inf->hosttime & 0x00ffffff);
 	pkt_print8  (pkt, inf->nrun & 0xff);
 	pkt_print16 (pkt, inf->nproc);
+	
+	if (inf->kmemfree > 0x00ffffff) inf->kmemfree = 0x00ffffff;
+	if (inf->kswapfree > 0x00ffffff) inf->kswapfree = 0x00ffffff;
+	
 	pkt_print24 (pkt, inf->kmemfree);
 	pkt_print24 (pkt, inf->kswapfree);
 	pkt_print32 (pkt, inf->netin);
