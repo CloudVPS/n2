@@ -527,6 +527,7 @@ int main (int argc, char *argv[])
 		
 		/* Store the peer address data */
 		rhost = ntohl (remote_addr.sin_addr.s_addr);
+		rhost = translate_alias (rhost);
 		
 		/* Packet should be larger than the minimum size */
 		if (psize > 25)
