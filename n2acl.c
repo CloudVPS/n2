@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 acl *ACL;
+n2alias *ALIASES;
 
 /* ------------------------------------------------------------------------- *\
  * FUNCTION init_acl (void)                                                  *
@@ -19,6 +20,7 @@ void acl_init (void)
 	int i;
 	ACL = (acl *) calloc (1, sizeof (acl));
 	GROUPS.groups = NULL;
+	ALIASES = NULL;
 	for (i=0; i<256; ++i) GROUPS.hash[i] = NULL;
 	
 	ACL->rtt_warning = DEF_RTT_WARNING;
@@ -113,6 +115,17 @@ hostgroup *hostgroup_create (const char *name)
 	while (crsr->next) crsr = crsr->next;
 	crsr->next = res;
 	return res;
+}
+
+unsigned long translate_alias (unsigned long addr)
+{
+	n2alias *a = ALIASES;
+	while (a)
+	{
+		if (a->from_addr == addr) return a->to_addr;
+		a = a->next;
+	}
+	return addr;
 }
 
 /* ------------------------------------------------------------------------- *\
@@ -411,6 +424,21 @@ void acl_add_contact (acl *a, const char *url)
 	c->next = newc;
 }
 
+void alias_clear (void)
+{
+	n2alias *crs;
+	n2alias *next;
+	
+	crs = ALIASES;
+	while (crs)
+	{
+		next = crs->next;
+		free (crs);
+	}
+	
+	ALIASES = NULL;
+}
+
 /* ------------------------------------------------------------------------- *\
  * FUNCTION acl_clear (void)                                                 *
  * -------------------------                                                 *
@@ -443,6 +471,8 @@ void acl_clear (void)
 		}
 		crs = next;
 	}
+	
+	alias_clear ();
 }
 
 #ifdef UNIT_TEST

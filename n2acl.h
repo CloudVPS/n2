@@ -1,6 +1,15 @@
 #ifndef _N2ACL_H
 #define _N2ACL_H 1
 
+typedef struct n2alias_struc
+{
+	unsigned long from_addr;
+	unsigned long to_addr;
+	struct n2alias_struc *next;
+} n2alias;
+
+extern n2alias *ALIASES;
+
 #define FL_DONTPING		0x01
 
 /* Default acl trigger levels */
@@ -179,6 +188,9 @@ DEFACLPROP (netout_alert,unsigned int);
 #undef DEFACLPROP
 
 acl_contact *acl_get_contacts (acl *a);
+
+unsigned long	 translate_alias (unsigned long);
+void			 alias_clear (void);
 
 /* ------------------------------------------------------------------------- *\
  * Other acl functions                                                       *

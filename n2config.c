@@ -41,6 +41,7 @@ void conf_monitor_netin_alert (n2arglist *);
 void conf_monitor_netout_warning (n2arglist *);
 void conf_monitor_netout_alert (n2arglist *);
 void conf_monitor_default (n2arglist *);
+void conf_alias (n2arglist *);
 void conf_server (n2arglist *);
 void conf_server_key (n2arglist *);
 void conf_iflist (n2arglist *);
@@ -138,6 +139,7 @@ n2command CONF_ROOT[] = {
 	{"hostname", NULL, conf_hostname},
 	{"no", CONF_NO, NULL},
 	{"version", NULL, conf_version},
+	{"alias", NULL, conf_alias},
 	{NULL, NULL, NULL}
 };
 
@@ -1027,6 +1029,32 @@ void conf_monitor_default (n2arglist *arg)
 	REDIR("netout-alert", conf_monitor_netout_alert, targ);
 	
 	destroy_args (targ);
+}
+
+void conf_alias (n2arglist *arg)
+{
+	if (arg->argc < 3)
+	{
+		fprintf (stderr, "%% Syntax error in alias\n");
+		return;
+	}
+	
+	n2alias *nalias = (n2alias *) malloc (sizeof (n2alias));
+	nalias->from_addr = atoip (arg->argv[1]);
+	nalias->to_addr = atoip (arg->argv[2]);
+	nalias->next = NULL;
+	
+	if ((! nalias->from_addr) || (! nalias->to_addr)) return;
+	
+	n2alias *c = ALIASES;
+	if (! c)
+	{
+		ALIASES = nalias;
+		return;
+	}
+	
+	while (c->next) c = c->next;
+	c->next = nalias;
 }
 
 /* ------------------------------------------------------------------------- *\
