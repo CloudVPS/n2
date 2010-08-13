@@ -1494,6 +1494,7 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 	printf ("    <netout>%i</netout>\n", CHKOFLAG(inf->oflags,OFLAG_NETOUT));
 	printf ("    <svcdown>%i</svcdown>\n", CHKOFLAG(inf->oflags,OFLAG_SVCDOWN));
 	printf ("    <diskio>%i</diskio>\n", CHKOFLAG(inf->oflags,OFLAG_DISKIO));
+	printf ("    <diskspace>%i</diskspace>\n", CHKOFLAG(inf->oflags,OFLAG_DISKSPACE));
 	printf ("    <other>%i</other>\n", CHKSTATUSFLAG(inf->status,FLAG_OTHER));
 	printf ("  </flags>\n");
 	printf ("  <uptime>%i</uptime>\n", inf->uptime);
