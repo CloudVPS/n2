@@ -43,6 +43,8 @@ void acl_init (void)
 	ACL->netout_alert = DEF_NETOUT_ALERT;
 	ACL->diskio_warning = DEF_DISKIO_WARNING;
 	ACL->diskio_alert = DEF_DISKIO_ALERT;
+	ACL->diskspace_warning = DEF_DISKSPACE_WARNING;
+	ACL->diskspace_alert = DEF_DISKSPACE_ALERT;
 }
 
 /* ------------------------------------------------------------------------- *\

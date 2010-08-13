@@ -33,9 +33,11 @@ extern n2alias *ALIASES;
 #define DEF_NETOUT_ALERT	   81920 /* 80Mb/s */
 #define DEF_DISKIO_WARNING	   16384 /* 16MBblk/s */
 #define DEF_DISKIO_ALERT       32768 /* 32Mblk/s */
+#define DEF_DISKSPACE_WARNING	 950 /* 95% */
+#define DEF_DISKSPACE_ALERT      990 /* 99% */
 
 typedef struct aclcontact_struc
-{
+{ 
 	struct aclcontact_struc		*next;
 	char						 contacturl[256];
 } acl_contact;
@@ -68,7 +70,7 @@ typedef struct acl_struc
 	unsigned int		 swap_warning, swap_alert;
 	unsigned int		 netin_warning, netin_alert;
 	unsigned int		 netout_warning, netout_alert;
-	unsigned int		 diskspace_warning, diskspace_alert;
+	unsigned short		 diskspace_warning, diskspace_alert;
 } acl;
 
 /* The global root node, this will be initialized to
@@ -185,8 +187,8 @@ DEFACLPROP (netin_warning,unsigned int);
 DEFACLPROP (netin_alert,unsigned int);
 DEFACLPROP (netout_warning,unsigned int);
 DEFACLPROP (netout_alert,unsigned int);
-DEFACLPROP (diskio_warning,unsigned int);
-DEFACLPROP (diskio_alert,unsigned int);
+DEFACLPROP (diskspace_warning,unsigned short);
+DEFACLPROP (diskspace_alert,unsigned short);
 
 #undef DEFACLPROP
 

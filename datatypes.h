@@ -72,7 +72,8 @@ enum /* bit-offsets of oflags when matching FLAG_OTHER */
 	OFLAG_NETIN = 2,
 	OFLAG_NETOUT = 3,
 	OFLAG_SVCDOWN = 4,
-	OFLAG_DISKIO = 5
+	OFLAG_DISKIO = 5,
+	OFLAG_DISKSPACE = 6
 };
 
 typedef unsigned int oflag_t;

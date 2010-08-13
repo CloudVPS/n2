@@ -763,6 +763,7 @@ int check_alert_status (unsigned long rhost,
 	unsigned short loss = info->loss;
 	unsigned short loadavg = info->load1;
 	unsigned int maxlevel;
+	int i;
 	
 	CLRSTATUSFLAG(info->status,FLAG_LOSS);
 	CLRSTATUSFLAG(info->status,FLAG_RTT);
@@ -841,6 +842,22 @@ int check_alert_status (unsigned long rhost,
 	{
 		SETSTATUSFLAG(info->status,FLAG_LOAD);
 		hadwarning++;
+	}
+	
+	for (i=0; i < info->nmounts; ++i)
+	{
+		if (acl_isover_diskspace_alert (cacl,info->mounts[i].usage))
+		{
+			SETSTATUSFLAG(info->status,FLAG_OTHER);
+			SETOFLAG(info->oflags,OFLAG_DISKSPACE);
+			hadalert++;
+		}
+		else if (acl_isover_diskspace_warning (cacl,info->mounts[i].usage))
+		{
+			SETSTATUSFLAG(info->status,FLAG_OTHER);
+			SETOFLAG(info->oflags,OFLAG_DISKSPACE);
+			hadwarning++;
+		}
 	}
 
 	if ((hadwarning == 0) && (hadalert == 0))

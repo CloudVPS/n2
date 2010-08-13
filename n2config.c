@@ -32,6 +32,8 @@ void conf_monitor_sock_warning (n2arglist *);
 void conf_monitor_sock_alert (n2arglist *);
 void conf_monitor_cpu_warning (n2arglist *);
 void conf_monitor_cpu_alert (n2arglist *);
+void conf_monitor_diskspace_warning (n2arglist *);
+void conf_monitor_diskspace_alert (n2arglist *);
 void conf_monitor_ram_warning (n2arglist *);
 void conf_monitor_ram_alert (n2arglist *);
 void conf_monitor_swap_warning (n2arglist *);
@@ -203,6 +205,8 @@ n2command CONF_MONITOR_GROUP[] = {
 	{"netout-alert", NULL, conf_monitor_netout_alert},
 	{"diskio-warning", NULL, conf_monitor_diskio_warning},
 	{"diskio-alert", NULL, conf_monitor_diskio_alert},
+	{"diskspace-warning", NULL, conf_monitor_diskspace_warning},
+	{"diskspace-alert", NULL, conf_monitor_diskspace_alert},
 	{"no", NULL, conf_monitor_no},
 	{NULL, NULL, NULL}
 };
@@ -897,6 +901,30 @@ void conf_monitor_cpu_alert (n2arglist *arg)
 }
 
 /* ------------------------------------------------------------------------- *\
+ * FUNCTION conf_monitor_diskspace_warning (args)                            *
+\* ------------------------------------------------------------------------- */
+void conf_monitor_diskspace_warning (n2arglist *arg)
+{
+	double d;
+	if (arg->argc > 1)
+	{
+		curacl->diskspace_warning = atoi (arg->argv[1]) * 10;
+	}
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION conf_monitor_diskspace_alert (args)                              *
+\* ------------------------------------------------------------------------- */
+void conf_monitor_diskspace_alert (n2arglist *arg)
+{
+	double d;
+	if (arg->argc > 1)
+	{
+		curacl->diskspace_alert = atoi (arg->argv[1]) * 10;
+	}
+}
+
+/* ------------------------------------------------------------------------- *\
  * FUNCTION conf_monitor_ram_warning (args)                                  *
 \* ------------------------------------------------------------------------- */
 void conf_monitor_ram_warning (n2arglist *arg)
@@ -1057,6 +1085,8 @@ void conf_monitor_default (n2arglist *arg)
 	REDIR("netout-alert", conf_monitor_netout_alert, targ);
 	REDIR("diskio-warning", conf_monitor_diskio_warning, targ);
 	REDIR("diskio-alert", conf_monitor_diskio_alert, targ);
+	REDIR("diskspace-warning", conf_monitor_diskspace_warning, targ);
+	REDIR("diskspace-alert", conf_monitor_diskio_alert, targ);
 	
 	destroy_args (targ);
 }
