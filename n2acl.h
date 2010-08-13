@@ -68,6 +68,7 @@ typedef struct acl_struc
 	unsigned int		 swap_warning, swap_alert;
 	unsigned int		 netin_warning, netin_alert;
 	unsigned int		 netout_warning, netout_alert;
+	unsigned int		 diskspace_warning, diskspace_alert;
 } acl;
 
 /* The global root node, this will be initialized to
@@ -184,6 +185,8 @@ DEFACLPROP (netin_warning,unsigned int);
 DEFACLPROP (netin_alert,unsigned int);
 DEFACLPROP (netout_warning,unsigned int);
 DEFACLPROP (netout_alert,unsigned int);
+DEFACLPROP (diskio_warning,unsigned int);
+DEFACLPROP (diskio_alert,unsigned int);
 
 #undef DEFACLPROP
 

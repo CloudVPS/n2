@@ -828,6 +828,7 @@ int check_alert_status (unsigned long rhost,
 	ACLHANDLE_OFLAG(swap,under,info->kswapfree,OFLAG_SWAP);
 	ACLHANDLE_OFLAG(netin,over,info->netin,OFLAG_NETIN);
 	ACLHANDLE_OFLAG(netout,over,info->netout,OFLAG_NETOUT);
+	ACLHANDLE_OFLAG(diskio,over,info->diskio,OFLAG_DISKIO);
 
 	/* Be more lenient about CPU, basically don't recognize it as
 	   an ALERT event ever */

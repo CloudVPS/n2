@@ -40,6 +40,8 @@ void conf_monitor_netin_warning (n2arglist *);
 void conf_monitor_netin_alert (n2arglist *);
 void conf_monitor_netout_warning (n2arglist *);
 void conf_monitor_netout_alert (n2arglist *);
+void conf_monitor_diskio_warning (n2arglist *);
+void conf_monitor_diskio_alert (n2arglist *);
 void conf_monitor_default (n2arglist *);
 void conf_alias (n2arglist *);
 void conf_server (n2arglist *);
@@ -199,6 +201,8 @@ n2command CONF_MONITOR_GROUP[] = {
 	{"netin-alert", NULL, conf_monitor_netin_alert},
 	{"netout-warning", NULL, conf_monitor_netout_warning},
 	{"netout-alert", NULL, conf_monitor_netout_alert},
+	{"diskio-warning", NULL, conf_monitor_diskio_warning},
+	{"diskio-alert", NULL, conf_monitor_diskio_alert},
 	{"no", NULL, conf_monitor_no},
 	{NULL, NULL, NULL}
 };
@@ -988,6 +992,30 @@ void conf_monitor_netout_alert (n2arglist *arg)
 	}
 }
 
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION conf_monitor_netout_warning (args)                               *
+\* ------------------------------------------------------------------------- */
+void conf_monitor_diskio_warning (n2arglist *arg)
+{
+	double d;
+	if (arg->argc > 1)
+	{
+		curacl->diskio_warning = atoi (arg->argv[1]);
+	}
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION conf_monitor_netout_alert (args)                                 *
+\* ------------------------------------------------------------------------- */
+void conf_monitor_diskio_alert (n2arglist *arg)
+{
+	double d;
+	if (arg->argc > 1)
+	{
+		curacl->diskio_alert = atoi (arg->argv[1]);
+	}
+}
+
 /* Handy macro to redirect default declarations to host-group commands */
 #define REDIR(foo,bar,baz) if (! strcmp (arg->argv[1], foo)) bar (baz)
 
@@ -1027,6 +1055,8 @@ void conf_monitor_default (n2arglist *arg)
 	REDIR("netin-alert", conf_monitor_netin_alert, targ);
 	REDIR("netout-warning", conf_monitor_netout_warning, targ);
 	REDIR("netout-alert", conf_monitor_netout_alert, targ);
+	REDIR("diskio-warning", conf_monitor_diskio_warning, targ);
+	REDIR("diskio-alert", conf_monitor_diskio_alert, targ);
 	
 	destroy_args (targ);
 }
