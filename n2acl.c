@@ -438,6 +438,7 @@ void alias_clear (void)
 	{
 		next = crs->next;
 		free (crs);
+		crs = next;
 	}
 	
 	ALIASES = NULL;
