@@ -835,6 +835,12 @@ int check_alert_status (unsigned long rhost,
 		printf ("diskio %i warning %i alert %i\n",
 				info->diskio, acl_get_diskio_warning (cacl),
 				acl_get_diskio_alert (cacl));
+		printf ("diskspace warning %i alert %i\n",
+				acl_get_diskspace_warning (cacl),
+				acl_get_diskspace_alert (cacl));
+		printf ("io %i space %i\n", info->oflags & OFLAG_DISKIO,
+				info->oflags & OFLAG_DISKSPACE);
+		printf ("status %08x oflags %08x\n", info->status,info->oflags);
 	#endif
 
 	/* Be more lenient about CPU, basically don't recognize it as
@@ -854,12 +860,22 @@ int check_alert_status (unsigned long rhost,
 	{
 		if (acl_isover_diskspace_alert (cacl,info->mounts[i].usage))
 		{
+			#ifdef DEBUG
+				printf ("mount %i usage %i alert %i\n", i,
+						info->mounts[i].usage,
+						acl_get_diskspace_alert (cacl));
+			#endif
 			SETSTATUSFLAG(info->status,FLAG_OTHER);
 			SETOFLAG(info->oflags,OFLAG_DISKSPACE);
 			hadalert++;
 		}
 		else if (acl_isover_diskspace_warning (cacl,info->mounts[i].usage))
 		{
+			#ifdef DEBUG
+				printf ("mount %i usage %i warn %i\n", i,
+						info->mounts[i].usage,
+						acl_get_diskspace_warning (cacl));
+			#endif
 			SETSTATUSFLAG(info->status,FLAG_OTHER);
 			SETOFLAG(info->oflags,OFLAG_DISKSPACE);
 			hadwarning++;
