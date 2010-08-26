@@ -813,12 +813,14 @@ int check_alert_status (unsigned long rhost,
 		{ \
 			SETSTATUSFLAG(info->status,FLAG_OTHER); \
 			SETOFLAG(info->oflags,xflag); \
+			printf ("setalert " # xtype "\n"); \
 			hadalert++; \
 		} \
 		else if (acl_is ## xdir ## _ ## xtype ## _warning (cacl,xvar)) \
 		{ \
 			SETSTATUSFLAG(info->status,FLAG_OTHER); \
 			SETOFLAG(info->oflags,xflag); \
+			printf ("setwarn " # xtype "\n"); \
 			hadwarning++; \
 		}
 
