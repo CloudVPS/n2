@@ -835,6 +835,9 @@ int check_alert_status (unsigned long rhost,
 		printf ("diskio %i warning %i alert %i\n",
 				info->diskio, acl_get_diskio_warning (cacl),
 				acl_get_diskio_alert (cacl));
+		printf ("diskspace warning %i alert %i\n",
+				acl_get_diskspace_warning (cacl),
+				acl_get_diskspace_alert (cacl));
 		printf ("io %i space %i\n", info->oflags & OFLAG_DISKIO,
 				info->oflags & OFLAG_DISKSPACE);
 		printf ("status %08x oflags %08x\n", info->status,info->oflags);
