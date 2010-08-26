@@ -831,6 +831,12 @@ int check_alert_status (unsigned long rhost,
 	ACLHANDLE_OFLAG(netout,over,info->netout,OFLAG_NETOUT);
 	ACLHANDLE_OFLAG(diskio,over,info->diskio,OFLAG_DISKIO);
 
+	#ifdef DEBUG
+		printf ("diskio %i warning %i alert %i\n",
+				info->diskio, acl_get_diskio_warning (cacl),
+				acl_get_diskio_alert (cacl));
+	#endif
+
 	/* Be more lenient about CPU, basically don't recognize it as
 	   an ALERT event ever */
 	if (acl_isover_cpu_alert (cacl,info->cpu))
