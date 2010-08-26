@@ -1086,7 +1086,7 @@ void conf_monitor_default (n2arglist *arg)
 	REDIR("diskio-warning", conf_monitor_diskio_warning, targ);
 	REDIR("diskio-alert", conf_monitor_diskio_alert, targ);
 	REDIR("diskspace-warning", conf_monitor_diskspace_warning, targ);
-	REDIR("diskspace-alert", conf_monitor_diskio_alert, targ);
+	REDIR("diskspace-alert", conf_monitor_diskspace_alert, targ);
 	
 	destroy_args (targ);
 }
