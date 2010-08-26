@@ -813,14 +813,12 @@ int check_alert_status (unsigned long rhost,
 		{ \
 			SETSTATUSFLAG(info->status,FLAG_OTHER); \
 			SETOFLAG(info->oflags,xflag); \
-			printf ("setalert " # xtype "\n"); \
 			hadalert++; \
 		} \
 		else if (acl_is ## xdir ## _ ## xtype ## _warning (cacl,xvar)) \
 		{ \
 			SETSTATUSFLAG(info->status,FLAG_OTHER); \
 			SETOFLAG(info->oflags,xflag); \
-			printf ("setwarn " # xtype "\n"); \
 			hadwarning++; \
 		}
 
@@ -859,12 +857,22 @@ int check_alert_status (unsigned long rhost,
 	{
 		if (acl_isover_diskspace_alert (cacl,info->mounts[i].usage))
 		{
+			#ifdef DEBUG
+				printf ("mount %i usage %i alert %i\n", i,
+						info->mounts[i].usage,
+						acl_get_diskspace_alert (cacl));
+			#endif
 			SETSTATUSFLAG(info->status,FLAG_OTHER);
 			SETOFLAG(info->oflags,OFLAG_DISKSPACE);
 			hadalert++;
 		}
 		else if (acl_isover_diskspace_warning (cacl,info->mounts[i].usage))
 		{
+			#ifdef DEBUG
+				printf ("mount %i usage %i warn %i\n", i,
+						info->mounts[i].usage,
+						acl_get_diskspace_warning (cacl));
+			#endif
 			SETSTATUSFLAG(info->status,FLAG_OTHER);
 			SETOFLAG(info->oflags,OFLAG_DISKSPACE);
 			hadwarning++;
