@@ -17,7 +17,7 @@ def getconfig():
 
 def setconfig(ip, port, key):
     win32serviceutil.SetServiceCustomOption('n2txd', 'host', ip)
-    win32serviceutil.SetServiceCustomOption('n2txd', 'port', port)
+    win32serviceutil.SetServiceCustomOption('n2txd', 'port', int(port))
     win32serviceutil.SetServiceCustomOption('n2txd', 'key', key)
 
 class n2txdservice(win32serviceutil.ServiceFramework):
@@ -43,7 +43,6 @@ class n2txdservice(win32serviceutil.ServiceFramework):
         
         ip, port, key = getconfig()
         print getconfig()
-        port = int(port)
         self.packet = n2packet(key)
         source = win32(self.packet)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
