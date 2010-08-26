@@ -835,6 +835,8 @@ int check_alert_status (unsigned long rhost,
 		printf ("diskio %i warning %i alert %i\n",
 				info->diskio, acl_get_diskio_warning (cacl),
 				acl_get_diskio_alert (cacl));
+		printf ("io %i space %i\n", info->oflags & OFLAG_DISKIO,
+				info->oflags & OFLAG_DISKSPACE);
 	#endif
 
 	/* Be more lenient about CPU, basically don't recognize it as
