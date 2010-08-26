@@ -301,6 +301,8 @@ acl *acl_create (unsigned long addr, unsigned long netmask)
 	res->netin_alert		= 0xffffffff;
 	res->netout_warning		= 0xffffffff;
 	res->netout_alert		= 0xffffffff;
+	res->diskspace_warning	= 0xffff;
+	res->diskspace_alert	= 0xffff;
 	
 	res->addr 				= addr;
 	res->mask 				= netmask;
