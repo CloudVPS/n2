@@ -42,7 +42,6 @@ class n2txdservice(win32serviceutil.ServiceFramework):
         )
         
         ip, port, key = getconfig()
-        print getconfig()
         self.packet = n2packet(key)
         source = win32(self.packet)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -189,41 +188,6 @@ class win32(blank):
         self.packet.nproc = self.nproc()
         self.packet.nrun = self.nrun()
         self.packet.diskio = self.getdiskio() / 1024
-
-def configure(argv):
-    if len(argv):
-        setconfig(*argv)
-    else:
-        c = getconfig()
-        print 'Current config:'
-        print 'IP = %s' % c[0]
-        print 'port = %s' % c[1]
-        print 'key = %s' % c[2]
-        print 'Use configure <IP> <port> <key> to configure'
-    
-def usage():
-    print 'Usage: %s <command> [args]' % sys.argv[0]
-    print ''
-    print 'Valid commands:'
-    print '  service [args]'
-    print '  configure [args]'
-
-def run(argv):
-    if not argv:
-        usage()
-        sys.exit(1)
-    
-    if argv[0] == 'service':
-        print argv[1:]
-        win32serviceutil.HandleCommandLine(n2txdservice, argv=['n2txd']+argv[1:])
-        sys.exit(0)
-    elif argv[0] == 'configure':
-        configure(argv[1:])
-        sys.exit(1)
-        
-    usage()
-        
-    sys.exit(1)
 
 if __name__ == '__main__':
     win32serviceutil.HandleCommandLine(n2txdservice, argv=['n2txd']+argv[1:])
