@@ -61,7 +61,7 @@ class win32(blank):
     def __init__(self, packet):
         super(win32, self).__init__(packet)
         packet.os = 'Windows'
-        packet.hostname = win32api.GetComputerName()
+        packet.hostname = win32api.GetComputerName().lower()
 
     def querysinglecounter(self, path, fmt):
         h = win32pdh.OpenQuery()
