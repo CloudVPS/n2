@@ -48,7 +48,7 @@ class n2txdservice(win32serviceutil.ServiceFramework):
         while True:
             source.run()
             s.sendto(self.packet.packet(), (ip, port))
-            ret = win32event.WaitForSingleObject(self.hWaitStop, 3*1000)
+            ret = win32event.WaitForSingleObject(self.hWaitStop, 27*1000)
             if ret == win32event.WAIT_OBJECT_0:
                 servicemanager.LogMsg(
                     servicemanager.EVENTLOG_INFORMATION_TYPE,
