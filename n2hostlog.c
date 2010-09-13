@@ -190,7 +190,7 @@ void print_hostlog (unsigned int addr)
 			}
 			printf ("\n");
 		}
-		crsr = (crsr - 1) & 15;
+		crsr = (crsr - 1) & 63;
 	}
 	free (log);
 }
