@@ -1,15 +1,67 @@
-import os, time
+import os, time, sys
 
-import win32api, win32net, win32pdh
+import win32api, win32net, win32pdh, win32serviceutil, win32event, win32service
+import servicemanager
 
 from n2.platform import blank
+from n2.packet import n2packet
+import socket
 from construct import Container
 
+def getconfig():
+    return (
+        win32serviceutil.GetServiceCustomOption('n2txd', 'host'),
+        win32serviceutil.GetServiceCustomOption('n2txd', 'port'),
+        win32serviceutil.GetServiceCustomOption('n2txd', 'key')
+    )
+
+def setconfig(ip, port, key):
+    win32serviceutil.SetServiceCustomOption('n2txd', 'host', ip)
+    win32serviceutil.SetServiceCustomOption('n2txd', 'port', int(port))
+    win32serviceutil.SetServiceCustomOption('n2txd', 'key', key)
+
+class n2txdservice(win32serviceutil.ServiceFramework):
+    _svc_name_ = 'n2txd'
+    _svc_display_name_ = 'n2 transmit daemon'
+    _svc_description_ = 'n2 transmit daemon service for win32'
+    
+    def __init__(self, args):
+        """docstring for __init__"""
+        win32serviceutil.ServiceFramework.__init__(self, args)
+        self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
+        
+    def SvcStop(self):
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        win32event.SetEvent(self.hWaitStop)
+        
+    def SvcDoRun(self):
+        servicemanager.LogMsg(
+            servicemanager.EVENTLOG_INFORMATION_TYPE,
+            servicemanager.PYS_SERVICE_STARTED,
+            (self._svc_name_, '')
+        )
+        
+        ip, port, key = getconfig()
+        self.packet = n2packet(key)
+        source = win32(self.packet)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        while True:
+            source.run()
+            s.sendto(self.packet.packet(), (ip, port))
+            ret = win32event.WaitForSingleObject(self.hWaitStop, 27*1000)
+            if ret == win32event.WAIT_OBJECT_0:
+                servicemanager.LogMsg(
+                    servicemanager.EVENTLOG_INFORMATION_TYPE,
+                    servicemanager.PYS_SERVICE_STOPPED,
+                    (self._svc_name_, '')
+                )
+                sys.exit(0)
+        
 class win32(blank):
     def __init__(self, packet):
         super(win32, self).__init__(packet)
         packet.os = 'Windows'
-        packet.hostname = win32api.GetComputerName()
+        packet.hostname = win32api.GetComputerName().lower()
 
     def querysinglecounter(self, path, fmt):
         h = win32pdh.OpenQuery()
@@ -28,7 +80,6 @@ class win32(blank):
                 if not resumeHandle:
                     break
         ret = []
-        print users
         for u in users:
             ret.append(Container(username=u['username'],line=u['logon_domain'],host=0))
         return ret
@@ -54,7 +105,6 @@ class win32(blank):
               win32pdh.CloseQuery(hq) 
     
         proc_ids.sort()
-        print proc_ids
 
     cpuquery = None
     cpuhandle = None
@@ -91,7 +141,6 @@ class win32(blank):
         if not self.netquery:
             self.netquery = win32pdh.OpenQuery()
             iface = win32pdh.EnumObjectItems(None, None, 'Network Interface', win32pdh.PERF_DETAIL_WIZARD, 0)[1][0]
-            print iface
             rxpath = win32pdh.MakeCounterPath( (None, 'Network Interface', iface, None, 0, 'Bytes Received/sec') )
             txpath = win32pdh.MakeCounterPath( (None, 'Network Interface', iface, None, 0, 'Bytes Sent/sec') )
             self.nethandles = (
@@ -140,5 +189,5 @@ class win32(blank):
         self.packet.nrun = self.nrun()
         self.packet.diskio = self.getdiskio() / 1024
 
-
-        
+if __name__ == '__main__':
+    win32serviceutil.HandleCommandLine(n2txdservice, argv=['n2txd']+argv[1:])

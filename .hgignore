@@ -16,3 +16,5 @@ n2rawdat
 n2pgrep
 n2analyze
 *.pyc
+python/dist/*
+python/build/*
