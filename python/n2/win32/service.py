@@ -1,4 +1,4 @@
-import os, time, sys
+import os, time, sys, traceback
 
 import win32api, win32net, win32pdh, win32serviceutil, win32event, win32service
 import servicemanager
@@ -46,9 +46,15 @@ class n2txdservice(win32serviceutil.ServiceFramework):
         source = win32(self.packet)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         while True:
-            source.run()
+            sleeptime = 27
+            try:
+                source.run()
+            except:
+                servicemanager.LogErrorMsg("error in main loop, retrying in 5 seconds\n\n%s" % traceback.format_exc())
+                sleeptime = 5
+
             s.sendto(self.packet.packet(), (ip, port))
-            ret = win32event.WaitForSingleObject(self.hWaitStop, 27*1000)
+            ret = win32event.WaitForSingleObject(self.hWaitStop, sleeptime*1000)
             if ret == win32event.WAIT_OBJECT_0:
                 servicemanager.LogMsg(
                     servicemanager.EVENTLOG_INFORMATION_TYPE,

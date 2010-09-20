@@ -15,6 +15,8 @@ def uptimeencoder(x, ctx):
         return (x/86400) | 0xc000
 
 def uptimedecoder(x, ctx):
+    if x & 0xc000 == 0:
+        return x
     if x & 0xc000 == 0x4000:
         return (x & 0x3fff) * 60
     if x & 0xc000 == 0x8000:
