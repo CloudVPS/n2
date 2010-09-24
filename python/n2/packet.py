@@ -160,6 +160,10 @@ class n2packet(object):
         raise CsumError
     
     def struct(self):
+        self.mrec = self.mrec[:4]
+        self.toprec = self.toprec[:8]
+        self.prec = self.prec[:10]
+        self.ttyrec = self.ttyrec[:10]
         return structure.build(
           Container(
             **self.__dict__
