@@ -10,6 +10,7 @@ netload_rec		*encode_rec			(netload_pkt *, time_t, status_t,
 									 unsigned int);
 int				 validate_pkt		(netload_pkt *, const char *);
 int				 decode_rec_inline	(netload_rec *, netload_info *);
+netload_info    *create_error_rec   ();
 netload_info	*decode_rec			(netload_rec *);
 
 void			 pkt_print8			(netload_pkt *, unsigned char);

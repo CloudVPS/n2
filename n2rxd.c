@@ -20,6 +20,7 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <string.h>
 
 time_t STARTTIME;
 
@@ -384,6 +385,15 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 		}
 		else /* validated */
 		{
+			if (!CHKOFLAG(oflags,OFLAG_DECODINGERR))
+			{
+				info->status = MKSTATUS(info->status,ST_ALERT);
+				SETSTATUSFLAG(info->status,FLAG_OTHER);
+				SETOFLAG(info->oflags,OFLAG_DECODINGERR);
+				handle_status_change(rhost, status, info->status);
+				hcache_setstatus (cache, rhost, info->status);
+				hcache_setoflags (cache, rhost, info->oflags);
+			} 
 			save_mangled_packet (pkt);
 			errorlog (rhost, "Mangled packet");
 		}
