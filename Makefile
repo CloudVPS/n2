@@ -175,7 +175,7 @@ n2stat-$(OSNAME)-debug.o:
 	$(CC) $(LDFLAGS) -DDEBUG -I. -c n2stat-$(OSNAME).c -o n2stat-$(OSNAME)-debug.o
 
 clean:
-	rm -f *.o n2acl-test n2dump n2conftool n2groups n2reconf n2control n2txd n2txd-debug n2rxd n2ping n2hstat n2history n2rawdat n2pgrep
+	rm -f *.o n2acl-test n2dump n2conftool n2groups n2reconf n2control n2txd n2txd-debug n2rxd n2ping n2hstat n2history n2rawdat n2pgrep n2contact
 
 
 
