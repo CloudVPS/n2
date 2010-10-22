@@ -110,18 +110,43 @@ int main (int argc, char *argv[])
 						if (rec) info = decode_rec (rec);
 						if (info)
 						{
+							if (1 == CHKSTATUSFLAG(info->status,FLAG_OTHER))
+							{
+								
+							}
+							
 							if (asxml)
 							{
+										// FIXME@ koert: potential stack overflow here if error flags are added
+								// or get longer names
+								char flags[512];
+								flags[0] = '\0';
+								
+								if( CHKSTATUSFLAG(info->status,FLAG_RTT) ) strcat(flags,", rtt");
+								if( CHKSTATUSFLAG(info->status,FLAG_LOSS) ) strcat(flags,", loss");
+								if( CHKSTATUSFLAG(info->status,FLAG_LOAD) ) strcat(flags,", load");
+								if( CHKOFLAG(info->oflags,OFLAG_RAM) ) strcat(flags,", ram");
+								if( CHKOFLAG(info->oflags,OFLAG_SWAP) ) strcat(flags,", swap");
+								if( CHKOFLAG(info->oflags,OFLAG_NETIN) ) strcat(flags,", netin");
+								if( CHKOFLAG(info->oflags,OFLAG_NETOUT) ) strcat(flags,", netout");
+								if( CHKOFLAG(info->oflags,OFLAG_SVCDOWN) ) strcat(flags,", svcdown");
+								if( CHKOFLAG(info->oflags,OFLAG_DISKIO) ) strcat(flags,", diskio");
+								if( CHKOFLAG(info->oflags,OFLAG_DISKSPACE) ) strcat(flags,", diskspace");
+								if( CHKOFLAG(info->oflags,OFLAG_DECODINGERR) ) strcat(flags,", decodingerr");
+								// if( CHKSTATUSFLAG(info->status,FLAG_OTHER) ) strcat(flags,", other");
+								
 								printf (" netin=\"%u\" netout=\"%u\" "
 										"rtt=\"%.1f\" cpu=\"%.2f\" "
 										"loadavg=\"%.2f\" status=\"%s\" "
-										"diskio=\"%u\"",
+										"diskio=\"%u\" flags=\"%s\" ",
 										info->netin, info->netout,
 										((double) info->ping10) / 10.0,
 										((double) info->cpu) / 2.56,
 										((double) info->load1) / 100.0,
 										STR_STATUS[info->status & 15],
-										info->diskio);
+										info->diskio,
+										*flags ? flags+2 : flags );
+																
 							}
 							else if (! ascsv)
 							{
