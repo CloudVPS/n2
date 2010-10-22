@@ -110,11 +110,6 @@ int main (int argc, char *argv[])
 						if (rec) info = decode_rec (rec);
 						if (info)
 						{
-							if (1 == CHKSTATUSFLAG(info->status,FLAG_OTHER))
-							{
-								
-							}
-							
 							if (asxml)
 							{
 										// FIXME@ koert: potential stack overflow here if error flags are added
