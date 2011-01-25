@@ -12,6 +12,12 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+typedef struct ipnode_st
+{
+	unsigned int addr;
+	struct ipnode_st *next;
+} ipnode;
+
 /* ------------------------------------------------------------------------- *\
  * FUNCTION main (argc, argv)                                                *
  * --------------------------                                                *
@@ -38,7 +44,11 @@ int main (int argc, char *argv[])
 	int ascsv;
 	int op;
 	char outline[256];
+	char addrbuf[32];
 	const char *groupname = NULL;
+	ipnode *firstnode = NULL;
+	ipnode *currentnode = NULL;
+	ipnode *newnode = NULL;
 	
 	asxml = 0;
 	ascsv = 1;
@@ -69,6 +79,58 @@ int main (int argc, char *argv[])
 				//                    Kb/s   "
 	}
 	
+	dir = opendir ("/var/state/n2/current");
+	while (de = readdir (dir))
+	{
+		if (strlen (de->d_name) > 4)
+		{
+			newnode = (ipnode *) malloc (sizeof (ipnode));
+			newnode->next = NULL;
+			newnode->addr = atoip (de->d_name);
+			if (currentnode)
+			{
+				currentnode->next = newnode;
+				currentnode = newnode;
+			}
+			else
+			{
+				currentnode = firstnode = newnode;
+			}
+		}
+	}
+	closedir (dir);
+	
+	dir = opendir ("/var/state/n2/current");
+	while (de = readdir (dir))
+	{
+		if (strlen (de->d_name) > 4)
+		{
+			addr = atoip (de->d_name);
+			currentnode = firstnode;
+			if (! currentnode)
+			{
+				currentnode = (ipnode *) malloc (sizeof (ipnode));
+				currentnode->next = NULL;
+				currentnode->addr = addr;
+				firstnode = currentnode;
+			}
+			else
+			{
+				while (currentnode->addr != addr && currentnode->next)
+					currentnode = currentnode->next;
+				
+				if (currentnode->addr != addr)
+				{
+					newnode = (ipnode *) malloc (sizeof (ipnode));
+					newnode->next = NULL;
+					newnode->addr = addr;
+					currentnode->next = newnode;
+				}
+			}
+		}
+	}
+	closedir (dir);
+
 	grp = GROUPS.groups;
 	
 	while (grp)
@@ -88,123 +150,121 @@ int main (int argc, char *argv[])
 				printf ("    <members>\n");
 			}
 			first = 1;
-			dir = opendir ("/var/state/n2/current");
-			while (de = readdir (dir))
+			currentnode = firstnode;
+			while (currentnode)
 			{
-				if (strlen (de->d_name) > 4)
+				addr = currentnode->addr;
+				printip (addr, addrbuf);
+				if (grp == hostgroup_acl_resolve (addr))
 				{
-					addr = atoip (de->d_name);
-					if (grp == hostgroup_acl_resolve (addr))
+					if (asxml)
+					{
+						printf ("      <member ip=\"%s\"", addrbuf);
+					}
+					else if (ascsv)
+					{
+						printf ("%s%s", first ? "" : " ", addrbuf);
+					}
+					first = 0;
+					info = NULL;
+					rec = diskdb_get_current (addr);
+					if (rec) info = decode_rec (rec);
+					if (info)
 					{
 						if (asxml)
 						{
-							printf ("      <member ip=\"%s\"", de->d_name);
+							// FIXME@ koert: potential stack overflow here if error flags are added
+							// or get longer names
+							char flags[512];
+							flags[0] = '\0';
+
+							if( CHKSTATUSFLAG(info->status,FLAG_RTT) ) strcat(flags,", rtt");
+							if( CHKSTATUSFLAG(info->status,FLAG_LOSS) ) strcat(flags,", loss");
+							if( CHKSTATUSFLAG(info->status,FLAG_LOAD) ) strcat(flags,", load");
+							if( CHKOFLAG(info->oflags,OFLAG_RAM) ) strcat(flags,", ram");
+							if( CHKOFLAG(info->oflags,OFLAG_SWAP) ) strcat(flags,", swap");
+							if( CHKOFLAG(info->oflags,OFLAG_NETIN) ) strcat(flags,", netin");
+							if( CHKOFLAG(info->oflags,OFLAG_NETOUT) ) strcat(flags,", netout");
+							if( CHKOFLAG(info->oflags,OFLAG_SVCDOWN) ) strcat(flags,", svcdown");
+							if( CHKOFLAG(info->oflags,OFLAG_DISKIO) ) strcat(flags,", diskio");
+							if( CHKOFLAG(info->oflags,OFLAG_DISKSPACE) ) strcat(flags,", diskspace");
+							if( CHKOFLAG(info->oflags,OFLAG_DECODINGERR) ) strcat(flags,", decodingerr");
+							// if( CHKSTATUSFLAG(info->status,FLAG_OTHER) ) strcat(flags,", other");
+
+							printf (" netin=\"%u\" netout=\"%u\" "
+									"rtt=\"%.1f\" cpu=\"%.2f\" "
+									"loadavg=\"%.2f\" status=\"%s\" "
+									"diskio=\"%u\" flags=\"%s\" ",
+									info->netin, info->netout,
+									((double) info->ping10) / 10.0,
+									((double) info->cpu) / 2.56,
+									((double) info->load1) / 100.0,
+									STR_STATUS[info->status & 15],
+									info->diskio,
+									*flags ? flags+2 : flags );
 						}
-						else if (ascsv)
+						else if (! ascsv)
 						{
-							printf ("%s%s", first ? "" : " ", de->d_name);
-						}
-						first = 0;
-						info = NULL;
-						rec = diskdb_get_current (addr);
-						if (rec) info = decode_rec (rec);
-						if (info)
-						{
-							if (asxml)
+							sprintf (outline, "%-17s                  ",
+									 addrbuf);
+							sprintf (outline+18, "%s        ",
+									 STR_STATUS[info->status&15]);
+							if (info->status == ST_DEAD)
 							{
-										// FIXME@ koert: potential stack overflow here if error flags are added
-								// or get longer names
-								char flags[512];
-								flags[0] = '\0';
+								sprintf (outline+24, "   -.--   -.-- %% "
+										 "%6.1f  %3i %%       -/      -"
+										 "       -",
+										 ((double)info->ping10) / 10.0,
+										 info->loss/100
+										);
+							}
+							else sprintf (outline+24, " %6.2f %6.2f %% "
+									 "%6.1f  %3i %% %7i/%7i %7i",
+									 ((double) info->load1) / 100.0,
+									 ((double) info->cpu) / 2.56,
+									 ((double) info->ping10) / 10.0,
+									 info->loss/100,
+									 info->netin, info->netout,
+									 info->diskio);
+									 
+							printf ("%s\n", outline); 
+						}
+						netin += info->netin;
+						netout += info->netout;
+						rtt += info->ping10;
+						if (ascsv)
+						{
+							switch (RDSTATUS(info->status))
+							{
+								case ST_WARNING:
+									printf ("=WARNING");
+									++numwarn; break;
+
+								case ST_STALE:
+								case ST_ALERT:
+								case ST_DEAD:
+									printf ("=ALERT");
+									++numalert; break;
+
+								case ST_CRITICAL:
+									printf ("=CRITICAL");
+									++numcrit; break;
 								
-								if( CHKSTATUSFLAG(info->status,FLAG_RTT) ) strcat(flags,", rtt");
-								if( CHKSTATUSFLAG(info->status,FLAG_LOSS) ) strcat(flags,", loss");
-								if( CHKSTATUSFLAG(info->status,FLAG_LOAD) ) strcat(flags,", load");
-								if( CHKOFLAG(info->oflags,OFLAG_RAM) ) strcat(flags,", ram");
-								if( CHKOFLAG(info->oflags,OFLAG_SWAP) ) strcat(flags,", swap");
-								if( CHKOFLAG(info->oflags,OFLAG_NETIN) ) strcat(flags,", netin");
-								if( CHKOFLAG(info->oflags,OFLAG_NETOUT) ) strcat(flags,", netout");
-								if( CHKOFLAG(info->oflags,OFLAG_SVCDOWN) ) strcat(flags,", svcdown");
-								if( CHKOFLAG(info->oflags,OFLAG_DISKIO) ) strcat(flags,", diskio");
-								if( CHKOFLAG(info->oflags,OFLAG_DISKSPACE) ) strcat(flags,", diskspace");
-								if( CHKOFLAG(info->oflags,OFLAG_DECODINGERR) ) strcat(flags,", decodingerr");
-								// if( CHKSTATUSFLAG(info->status,FLAG_OTHER) ) strcat(flags,", other");
-								
-								printf (" netin=\"%u\" netout=\"%u\" "
-										"rtt=\"%.1f\" cpu=\"%.2f\" "
-										"loadavg=\"%.2f\" status=\"%s\" "
-										"diskio=\"%u\" flags=\"%s\" ",
-										info->netin, info->netout,
-										((double) info->ping10) / 10.0,
-										((double) info->cpu) / 2.56,
-										((double) info->load1) / 100.0,
-										STR_STATUS[info->status & 15],
-										info->diskio,
-										*flags ? flags+2 : flags );
-																
+								default:
+									printf ("=OK");
+									break;
 							}
-							else if (! ascsv)
-							{
-								sprintf (outline, "%-17s                  ",
-										 de->d_name);
-								sprintf (outline+18, "%s        ",
-										 STR_STATUS[info->status&15]);
-								if (info->status == ST_DEAD)
-								{
-									sprintf (outline+24, "   -.--   -.-- %% "
-											 "%6.1f  %3i %%       -/      -"
-											 "       -",
-											 ((double)info->ping10) / 10.0,
-											 info->loss/100
-											);
-								}
-								else sprintf (outline+24, " %6.2f %6.2f %% "
-										 "%6.1f  %3i %% %7i/%7i %7i",
-										 ((double) info->load1) / 100.0,
-										 ((double) info->cpu) / 2.56,
-										 ((double) info->ping10) / 10.0,
-										 info->loss/100,
-										 info->netin, info->netout,
-										 info->diskio);
-										 
-								printf ("%s\n", outline); 
-							}
-							netin += info->netin;
-							netout += info->netout;
-							rtt += info->ping10;
-							if (ascsv)
-							{
-								switch (RDSTATUS(info->status))
-								{
-									case ST_WARNING:
-										printf ("=WARNING");
-										++numwarn; break;
-									
-									case ST_STALE:
-									case ST_ALERT:
-									case ST_DEAD:
-										printf ("=ALERT");
-										++numalert; break;
-									
-									case ST_CRITICAL:
-										printf ("=CRITICAL");
-										++numcrit; break;
-									
-									default:
-										printf ("=OK");
-										break;
-								}
-							}
-							pool_free (info);
 						}
-						else
-						{
-							free (rec);
-						}
-						if (asxml) printf ("/>\n");
-						++count;
+						pool_free (info);
 					}
+					else
+					{
+						free (rec);
+					}
+					if (asxml) printf ("/>\n");
+					++count;
 				}
+				currentnode = currentnode->next;
 			}
 			if (! asxml)
 			{
