@@ -28,6 +28,11 @@ confline *read_conf (FILE *f)
 	int makesibling = 1;
 	
 	res = ln = (confline *) malloc (sizeof (confline));
+	ln->next = NULL;
+	ln->line[0] = 0;
+	ln->first = NULL;
+	if (!f) return res;
+	
 	if (! ln) panic ("malloc");
 	
 	while (fgets (ln->line, MAXLINESIZE-1, f) != NULL)
@@ -264,6 +269,8 @@ confline *findormakesub (confline *conf, const char *stm)
 
 int main (int argc, char *argv[])
 {
+	char conf_file[1024];
+	char temp_file[1024];
 	const char *left;
 	const char *right;
 	FILE *f;
@@ -272,7 +279,19 @@ int main (int argc, char *argv[])
 	int i = 1;
 	if (argc < 2) return 1;
 	
-	f = fopen ("/etc/n2/n2rxd.conf","r");
+	strcpy (conf_file, "/etc/n2/n2rxd.conf");
+	strcpy (temp_file, "/etc/n2/n2rxd.conf.new");
+	
+	if (strcmp (argv[i], "--file") == 0)
+	{
+		SHIFT;
+		strcpy (conf_file, argv[i]);
+		strcpy (temp_file, argv[i]);
+		strcat (temp_file, ".new");
+		SHIFT;
+	}
+	
+	f = fopen (conf_file,"r");
 	conf = read_conf (f);
 	fclose (f);
 	
@@ -303,12 +322,12 @@ int main (int argc, char *argv[])
 		panic ("argument error");
 	}
 	
-	f = fopen ("/etc/n2/n2rxd.conf.new","w");
+	f = fopen (temp_file,"w");
 	if (! f) panic ("open write");
 	write_conf (conf, f);
 	fclose (f);
 	
-	if (rename ("/etc/n2/n2rxd.conf.new", "/etc/n2/n2rxd.conf"))
+	if (rename (temp_file, conf_file))
 	{
 		panic ("install-file");
 	}

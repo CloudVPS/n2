@@ -47,6 +47,7 @@ int main (int argc, char *argv[])
 	unsigned int ival;
 	unsigned int datum;
 	unsigned long long dtotal;
+	unsigned long long dsum;
 	stype what = CPU;
 	double divider;
 	
@@ -89,6 +90,7 @@ int main (int argc, char *argv[])
 	ipstr = argv[1];
 	ipaddr = atoip (ipstr);
 	diskdb_now (&dt, &offs);
+	dsum = 0;
 	
 	for (i=0; i<65; ++i)
 	{
@@ -149,6 +151,9 @@ int main (int argc, char *argv[])
 				free (rec);
 			}
 		}
+		
+		dsum += dtotal;
+		
 		dtotal = dtotal / step;
 		datum = dtotal & 0xffffffff;
 		if (datum > max) max = datum;
@@ -193,6 +198,9 @@ int main (int argc, char *argv[])
 			printf ("            -1:00     -0:50     -0:40     -0:30"
 					"     -0:20     -0:10\n"); break;
 	}
+	
+	printf ("\n");
+	printf ("sum: %llu\n", dsum);
 	
 	return 0;
 }
