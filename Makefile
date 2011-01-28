@@ -79,6 +79,7 @@ justinstall: all
 	install -b -o root -g root -m 0644 n2rxd.example.conf $(DESTDIR)/etc/n2/
 	install -b -o root -g root -m 0644 n2txd.example.conf $(DESTDIR)/etc/n2/
 	install -o root -g n2 -m 0755 n2rxd $(DESTDIR)/usr/sbin/
+	install -o root -m 0755 n2ack $(DESTDIR)/usr/bin
 	install -o root -g n2 -m 0755 n2txd $(DESTDIR)/usr/sbin/
 	install -o root -g n2 -m 0755 n2ping $(DESTDIR)/usr/sbin/
 	install -o root -g n2 -m 0755 n2hstat $(DESTDIR)/usr/bin/
