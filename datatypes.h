@@ -84,7 +84,7 @@ extern const char *STR_STATUSFLAGS[];
 
 #define MKSTATUS(pval,pstat) ((pval & 0xf0)|(pstat & 0x0f))
 #define RDSTATUS(pval) (pval & 0x0f)
-#define RDFLAGS(pval) ((pval >> 4) & 0x0f)
+#define RDFLAGS(pval) ((pval >> 4) & 0x07)
 #define SETSTATUSFLAG(pval,bit) (pval = (pval | (1 << ((bit&3)+4))))
 #define CLRSTATUSFLAG(pval,bit) (pval = (pval & (0xff ^ (1 << ((bit&3)+4)))))
 #define CHKSTATUSFLAG(pval,bit) ( (pval & (1 << ((bit&3)+4))) ? 1 : 0 )
