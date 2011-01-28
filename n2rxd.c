@@ -550,7 +550,7 @@ int main (int argc, char *argv[])
 			if (cacl)
 			{
 				/* Validate the MD5 key */
-				validated = validate_pkt (pkt, cacl->key);
+				validated = validate_pkt (pkt, acl_get_key (cacl));
 				if (validated)
 				{
 					handle_packet (pkt, rhost, cache, psize, info, cacl);

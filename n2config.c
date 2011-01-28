@@ -19,6 +19,7 @@ void conf_user (n2arglist *);
 void conf_group (n2arglist *);
 void conf_hostname (n2arglist *);
 void conf_service_match (n2arglist *);
+void conf_monitor_host (n2arglist *);
 void conf_monitor_group (n2arglist *);
 void conf_monitor_key (n2arglist *);
 void conf_monitor_contact (n2arglist *);
@@ -133,6 +134,7 @@ n2command CONF_ROOT[] = {
 	{"user", NULL, conf_user},
 	{"group", NULL, conf_group},
 	{"monitor-group", NULL, conf_monitor_group},
+	{"monitor-host", NULL, conf_monitor_host},
 	{"host-group", NULL, conf_host_group},
 	{"server", NULL, conf_server},
 	{"service", NULL, conf_service},
@@ -695,6 +697,42 @@ void conf_group (n2arglist *arg)
 		fprintf (stderr, "%% Syntax error in configuration file "
 						 "<group> statement\n");
 		exit (1);
+	}
+}
+
+void conf_monitor_host (n2arglist *arg)
+{
+	/* monitor-host 1.2.3.4 ignore-loss */
+	unsigned long addr;
+	unsigned long mask;
+	acl *myacl;
+	
+	
+	if (argc->argc == 3)
+	{
+		addr = atoip (arg->argv[1]);
+		mask = atomask ("0.0.0.0");
+		
+		myacl = acl_match_mask (addr, mask);
+		while (myacl)
+		{
+			if ((myacl->addr == addr) && (myacl->mask == mask)) break;
+			if (! myacl->next)
+			{
+				myacl = acl_create (addr, mask);
+				break;
+			}
+			myacl = myacl->next;
+		}
+		
+		if (myacl)
+		{
+			if (strcmp (arg->argv[2], "ignore-loss") == 0)
+			{
+				myacl->loss_warning = 10100;
+				myacl->loss_alert = 10200;
+			}
+		}
 	}
 }
 

@@ -480,6 +480,13 @@ void acl_clear (void)
 	alias_clear ();
 }
 
+const char *acl_get_key (acl *a)
+{
+	if (a->key[0]) return a->key;
+	if (a->parent) return acl_get_key (a->parent);
+	return NULL;
+}
+
 #ifdef UNIT_TEST
 
 groupdb GROUPS;

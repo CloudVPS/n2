@@ -190,6 +190,8 @@ DEFACLPROP (netout_alert,unsigned int);
 DEFACLPROP (diskspace_warning,unsigned short);
 DEFACLPROP (diskspace_alert,unsigned short);
 
+const char *acl_get_key (acl *);
+
 #undef DEFACLPROP
 
 acl_contact *acl_get_contacts (acl *a);
