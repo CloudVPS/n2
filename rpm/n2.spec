@@ -1,4 +1,4 @@
-%define version 1.0.3
+%define version 1.0.4
 
 Name: n2
 Summary: n2 packages

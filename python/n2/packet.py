@@ -36,7 +36,7 @@ def ratioAdapter(name, format, ratio):
        decoder = lambda obj, ctx: obj / float(ratio)
      )
 
-structure = Debugger(Struct('n2packet',
+structure = Struct('n2packet',
     PascalString('hostname'),
     EmbeddedBitStruct(
       Enum(
@@ -131,7 +131,7 @@ structure = Debugger(Struct('n2packet',
         ULInt8('ncpu')
       )
     )
-))
+)
 
 class CsumError(Exception):
     pass

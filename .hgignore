@@ -15,6 +15,7 @@ n2history
 n2rawdat
 n2pgrep
 n2analyze
+n2contact
 *.pyc
 python/dist/*
 python/build/*

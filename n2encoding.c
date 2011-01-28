@@ -629,6 +629,25 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 	return 1;
 }
 
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION create_error_rec ()                                              *
+ * -------------------------                                                 *
+ * creates a empty netload_info, with a status ST_ALERT                      *
+ * and other flags set to decoding error									 *
+\* ------------------------------------------------------------------------- */
+netload_info *create_error_rec()
+{
+	netload_info *dst_error;
+	
+	dst_error = (netload_info *) pool_alloc (sizeof (netload_info));
+	dst_error->status = MKSTATUS(dst_error->status,ST_ALERT);
+	SETSTATUSFLAG(dst_error->status,FLAG_OTHER);
+	SETOFLAG(dst_error->oflags,OFLAG_DECODINGERR);
+	
+	return dst_error;
+}
+
 /* ------------------------------------------------------------------------- *\
  * FUNCTION decode_rec (rec)                                                 *
  * -------------------------                                                 *
@@ -637,14 +656,26 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 netload_info *decode_rec (netload_rec *rec)
 {
 	netload_info *dst;
+	netload_info *dst_error;
 	int			  row;
 	int			  tmp;
 	int			  failure = 0;
 	
 	/* Allocate a netload_info structure */
 	dst = (netload_info *) pool_alloc (sizeof (netload_info));
-	if (decode_rec_inline (rec, dst)) return dst;
-	pool_free (dst);
+	if (decode_rec_inline (rec, dst)) 
+	{
+		return dst;
+	}
+	else
+	{
+		pool_free (dst);
+		dst_error = create_error_rec();
+		
+		return dst_error;
+	}
+	
+	pool_free (dst_error);
 	return NULL;
 }
 
@@ -1167,7 +1198,8 @@ const char *STR_OFLAGS[] = {
 	"svcdown", /* 4 */
 	"diskio", /* 5 */
 	"diskspace", /* 6 */
-	"","","","","","","","","","","","",
+	"decoding", /* 7 */
+	"","","","","","","","","","","",
 	"","","","","","","","","","","","",""
 };
 
@@ -1290,6 +1322,7 @@ void print_info (netload_info *inf, unsigned int addr)
 {
 	int i;
 	int j;
+	int statusflg_cnt, otherflg_cnt, max_statusflgs, max_oflgs;
 	int showpmem;
 	char ip[32];
 	
@@ -1303,7 +1336,27 @@ void print_info (netload_info *inf, unsigned int addr)
 	
 	if ((RDSTATUS(inf->status) > ST_OK) && (RDSTATUS(inf->status) < ST_STALE))
 	{
-		printf ("Problems........: %s\n", FLAGTEXT(inf->status));
+		max_statusflgs = sizeof(STR_STATUSFLAGS)/sizeof(*STR_STATUSFLAGS);
+		max_oflgs = sizeof(STR_OFLAGS)/sizeof(*STR_OFLAGS);
+		printf ("Problems........:");
+		for (statusflg_cnt = 0; statusflg_cnt<max_statusflgs; ++statusflg_cnt)
+		{
+			if (1 == CHKSTATUSFLAG(inf->status,statusflg_cnt))
+			{
+				printf(" %s", STR_STATUSFLAGS[statusflg_cnt]);
+			}
+		}
+		if (1 == CHKSTATUSFLAG(inf->status,FLAG_OTHER))
+		{
+			for (otherflg_cnt = 0; otherflg_cnt<max_oflgs; ++otherflg_cnt)
+			{
+				if (1 == CHKOFLAG(inf->oflags,otherflg_cnt))
+				{
+					printf(" %s", STR_OFLAGS[otherflg_cnt]);
+				}
+			}
+		}
+		printf ("\n");
 	}
 	
 	printf ("Host time.......: %d\n", inf->hosttime);
@@ -1495,6 +1548,7 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 	printf ("    <svcdown>%i</svcdown>\n", CHKOFLAG(inf->oflags,OFLAG_SVCDOWN));
 	printf ("    <diskio>%i</diskio>\n", CHKOFLAG(inf->oflags,OFLAG_DISKIO));
 	printf ("    <diskspace>%i</diskspace>\n", CHKOFLAG(inf->oflags,OFLAG_DISKSPACE));
+	printf ("    <decoding>%i</decoding>\n", CHKOFLAG(inf->oflags,OFLAG_DECODINGERR));
 	printf ("    <other>%i</other>\n", CHKSTATUSFLAG(inf->status,FLAG_OTHER));
 	printf ("  </flags>\n");
 	printf ("  <uptime>%i</uptime>\n", inf->uptime);
@@ -1601,7 +1655,7 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 		printf ("  <ttys>\n");
 		for (i=0; i<inf->ntty; ++i)
 		{
-			printip (inf->ttys[i].host, astr);
+			printip (inf->ttys[i].host, astr); 
 			printf ("    <tty line=\"%s\" username=\"%s\" host=\"%s\"/>\n",
 					inf->ttys[i].line, inf->ttys[i].username, astr);
 		}
