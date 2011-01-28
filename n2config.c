@@ -708,7 +708,7 @@ void conf_monitor_host (n2arglist *arg)
 	acl *myacl;
 	
 	
-	if (argc->argc == 3)
+	if (arg->argc == 3)
 	{
 		addr = atoip (arg->argv[1]);
 		mask = atomask ("0.0.0.0");
