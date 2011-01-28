@@ -729,8 +729,8 @@ void conf_monitor_host (n2arglist *arg)
 		{
 			if (strcmp (arg->argv[2], "ignore-loss") == 0)
 			{
-				myacl->loss_warning = 10100;
-				myacl->loss_alert = 10200;
+				myacl->loss_warning = 10500;
+				myacl->loss_alert = 11000;
 			}
 		}
 	}
