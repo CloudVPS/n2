@@ -4,6 +4,7 @@
 #include "n2args.h"
 #include "version.h"
 #include "n2malloc.h"
+#include "datatypes.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -354,6 +355,7 @@ static const char *STR_SVC[] = {
 };
 
 svc_match MATCH_NONE[] = {{NULL, NULL, 0}};
+ackednode *ACKED;
 
 /* GLOBALS */
 n2command	*CROOT;
@@ -422,6 +424,131 @@ void parse_cmd (const char *str)
 	
 	if (str[0] >= ' ')
 		printf ("%% Syntax error in configuration line:\n  '%s'\n", str);
+}
+
+ackednode *create_acknode (void)
+{
+	ackednode *crsr = ACKED;
+	ackednode *newnode;
+	
+	while (crsr && crsr->next) crsr = crsr->next;
+	newnode = (ackednode *) malloc (sizeof (ackednode));
+	newnode->next = NULL;
+	newnode->acked_oflags = 0;
+	newnode->acked_flags = 0;
+	newnode->acked_stale_or_dead = 0;
+	newnode->expires = 0;
+	
+	if (crsr) crsr->next = newnode;
+	else ACKED = newnode;
+	
+	return newnode;
+}
+
+ackednode *find_acked (unsigned long addr)
+{
+	time_t tnow;
+	ackednode *crsr = ACKED;
+	if (! crsr) return NULL;
+	tnow = time(NULL);
+	while (crsr)
+	{
+		if (crsr->addr == addr && crsr->expires > tnow) return crsr;
+		crsr = crsr->next;
+	}
+	return NULL;
+}
+
+void load_ackedlist (void)
+{
+	time_t tnow, texp;
+	ackednode *crsr;
+	ackednode *newnode;
+	n2arglist *arg;
+	FILE *f;
+	char buf[1024];
+	int i;
+	
+	tnow = time (NULL);
+	
+	crsr = ACKED;
+	while (crsr)
+	{
+		newnode = crsr->next;
+		free (crsr);
+		crsr = newnode;
+	}
+	
+	ACKED = NULL;
+	
+	f = fopen ("/etc/n2/n2rxd.acked","r");
+	if (f)
+	{
+		while (! feof (f))
+		{
+			buf[0] = 0;
+			fgets (buf, 1023, f);
+			buf[1023] = 0;
+			i = strlen(buf);
+			if (i)
+			{
+				if (buf[i-1] < ' ') buf[i-1] = 0;
+			}
+			if (! *buf) continue;
+			arg = make_args (buf);
+			// 1.2.3.4 texp prob1 prob2 prob3 prob4
+			if (arg->argc > 2)
+			{
+				texp = strtoul (arg->argv[1], NULL, 10);
+				if (texp < tnow)
+				{
+					destroy_args (arg);
+					continue;
+				}
+				newnode = create_acknode();
+				newnode->addr = atoip (arg->argv[0]);
+				newnode->expires = strtoul (arg->argv[1], NULL, 10);
+				
+				#define chk_flag(flag,str) { \
+						if(strcmp(arg->argv[i],str) ==0) { \
+							newnode->acked_flags |= (1 << flag); \
+							continue; \
+						} \
+					}
+
+				#define chk_oflag(flag,str) { \
+						if(strcmp(arg->argv[i],str) ==0) { \
+							printf ("ack %s = %i\n", str, 1<<flag); \
+							newnode->acked_oflags |= (1 << flag); \
+							continue; \
+						} \
+					}
+				
+				for (i=2; i<arg->argc; ++i)
+				{
+					printf ("checking %s\n", arg->argv[i]);
+					chk_flag(FLAG_RTT, "rtt");
+					chk_flag(FLAG_LOSS, "loss");
+					chk_flag(FLAG_LOAD, "load");
+					chk_oflag(OFLAG_RAM, "ram");
+					chk_oflag(OFLAG_SWAP, "swap");
+					chk_oflag(OFLAG_NETIN, "netin");
+					chk_oflag(OFLAG_NETOUT, "netout");
+					chk_oflag(OFLAG_SVCDOWN, "svcdown");
+					chk_oflag(OFLAG_DISKIO, "diskio");
+					chk_oflag(OFLAG_DISKSPACE, "diskspace");
+					chk_oflag(OFLAG_DECODINGERR, "decodingerr");
+					if (strcmp(arg->argv[i],"dead") == 0)
+					{
+						newnode->acked_stale_or_dead = 1;
+						continue;
+					}
+				}
+			}
+			destroy_args (arg);
+		}
+		fclose (f);
+	}
 }
 
 /* ------------------------------------------------------------------------- *\
@@ -509,6 +636,7 @@ void load_config (const char *fname)
 		fclose (F);
 	}
 	CROOT = CONF_ROOT;
+	load_ackedlist ();
 	
 	/*F = fopen ("/var/state/n2/acl.states","w");
 	if (F) dump_acl_tree (F, ACL, 0);
@@ -1372,6 +1500,7 @@ void conf_init (void)
 	CONF.encoding = ENCODE_LOGINS | ENCODE_TCPSTAT;
 	CONF.modstatus = 0;
 	CONF.statusurl[0] = 0;
+	ACKED = NULL;
 	
 	memcpy (CONF.matches, staticmatches, sizeof (staticmatches));
 	

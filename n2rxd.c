@@ -447,6 +447,10 @@ int main (int argc, char *argv[])
 	hcache *cache; 					/* Pointer to the hostcache root */
 	hcache_node *ccrsr; 			/* Cursor-pointers if we want to graze */
 	hcache_node *cnext; 			/* through the cache for something */
+	ackednode *acked;				/* pointer for acknowledged problems */
+	oflag_t myoflags;
+	unsigned char myflags;
+	int isacked;
 	
 	STARTTIME = time (NULL);
 	
@@ -612,6 +616,8 @@ int main (int argc, char *argv[])
 												  ST_STALE);
 							ccrsr->status = ST_STALE;
 							rec_set_status (rec, ST_STALE);
+							
+							
 						}
 						
 						plog = read_ping_data ((unsigned long) ccrsr->addr);
@@ -654,6 +660,29 @@ int main (int argc, char *argv[])
 						{
 							rec_set_ping10 (rec, 0);
 							rec_set_loss (rec, 10000);
+						}
+						
+						acked = find_acked (ccrsr->addr);
+						if (acked && (acked->acked_stale_or_dead))
+						{
+							isacked = 1;
+							myflags = RDFLAGS(ccrsr->status) & 0x07;
+							myoflags = rec_get_oflags(rec) & 0x7f000000;
+							
+							if (myoflags)
+							{
+								if ((myoflags & acked->acked_oflags) != myoflags) isacked = 0;
+							}
+							
+							if (myflags)
+							{
+								if ((myflags & acked->acked_flags) != myflags) isacked = 0;
+							}
+							
+							if (isacked)
+							{
+								rec_set_oflags (rec, myoflags | OFLAG_ACKED);
+							}
 						}
 						/* Store the updated data back on disk */
 						diskdb_setcurrent (ccrsr->addr, rec);
@@ -774,6 +803,7 @@ int check_alert_status (unsigned long rhost,
 	unsigned short loadavg = info->load1;
 	unsigned int maxlevel;
 	int i;
+	ackednode *acked;
 	
 	CLRSTATUSFLAG(info->status,FLAG_LOSS);
 	CLRSTATUSFLAG(info->status,FLAG_RTT);
@@ -921,6 +951,16 @@ int check_alert_status (unsigned long rhost,
 	if (hcnode->alertlevel > 6) info->status = MKSTATUS(info->status,ST_WARNING);
 	if (hcnode->alertlevel > 24) info->status = MKSTATUS(info->status,ST_ALERT);
 	if (hcnode->alertlevel > 40) info->status = MKSTATUS(info->status,ST_CRITICAL);
+	
+	acked = find_acked (rhost);
+	if (acked)
+	{
+		if ((info->oflags ^ acked->acked_oflags == 0) &&
+		    (RDFLAGS(info->status) ^ acked->acked_flags == 0))
+		{
+			info->oflags |= 1<<OFLAG_ACKED;
+		}
+	}
 	
 	/* Determine if we changed the status */
 	if (RDSTATUS(info->status) != RDSTATUS(oldstatus))

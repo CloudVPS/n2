@@ -804,6 +804,14 @@ void rec_set_oflags (netload_rec *rec, oflag_t oflags)
 	rec->pos = oldpos;
 }
 
+oflag_t rec_get_oflags (netload_rec *rec)
+{
+	int i;
+	i = (rec->data[12]) | (rec->data[13] << 8) |
+		(rec->data[14] << 16) | (rec->data[15] << 24);
+	return (oflag_t) i;
+}
+
 /* ------------------------------------------------------------------------- *\
  * FUNCTION pkt_print8 (pkt, byte)                                           *
  * -------------------------------                                           *
@@ -1202,7 +1210,7 @@ const char *STR_OFLAGS[] = {
 	"diskspace", /* 6 */
 	"decoding", /* 7 */
 	"","","","","","","","","","","",
-	"","","","","","","","","","","","",""
+	"","","","","","","","","","","","","acked"
 };
 
 const char *STR_OS[] = {
@@ -1551,6 +1559,7 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 	printf ("    <diskio>%i</diskio>\n", CHKOFLAG(inf->oflags,OFLAG_DISKIO));
 	printf ("    <diskspace>%i</diskspace>\n", CHKOFLAG(inf->oflags,OFLAG_DISKSPACE));
 	printf ("    <decoding>%i</decoding>\n", CHKOFLAG(inf->oflags,OFLAG_DECODINGERR));
+	printf ("    <acked>%i</acked>\n", CHKOFLAG(inf->oflags,OFLAG_ACKED));
 	printf ("    <other>%i</other>\n", CHKSTATUSFLAG(inf->status,FLAG_OTHER));
 	printf ("  </flags>\n");
 	printf ("  <uptime>%i</uptime>\n", inf->uptime);

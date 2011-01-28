@@ -49,6 +49,7 @@ int main (int argc, char *argv[])
 	ipnode *firstnode = NULL;
 	ipnode *currentnode = NULL;
 	ipnode *newnode = NULL;
+	int isacked;
 	
 	asxml = 0;
 	ascsv = 1;
@@ -157,6 +158,7 @@ int main (int argc, char *argv[])
 				printip (addr, addrbuf);
 				if (grp == hostgroup_acl_resolve (addr))
 				{
+					isacked = 0;
 					if (asxml)
 					{
 						printf ("      <member ip=\"%s\"", addrbuf);
@@ -171,6 +173,13 @@ int main (int argc, char *argv[])
 					if (rec) info = decode_rec (rec);
 					if (info)
 					{
+						if (CHKOFLAG(info->oflags,OFLAG_ACKED))
+						{
+							// hide the flag, but keep it tracked.
+							info->oflags ^= 1<<OFLAG_ACKED;
+							isacked = 1;
+						}
+						else isacked = 0;
 						if (asxml)
 						{
 							// FIXME@ koert: potential stack overflow here if error flags are added
@@ -189,6 +198,7 @@ int main (int argc, char *argv[])
 							if( CHKOFLAG(info->oflags,OFLAG_DISKIO) ) strcat(flags,", diskio");
 							if( CHKOFLAG(info->oflags,OFLAG_DISKSPACE) ) strcat(flags,", diskspace");
 							if( CHKOFLAG(info->oflags,OFLAG_DECODINGERR) ) strcat(flags,", decodingerr");
+							if( isacked ) strcat(flags, ", acked");
 							// if( CHKSTATUSFLAG(info->status,FLAG_OTHER) ) strcat(flags,", other");
 
 							printf (" netin=\"%u\" netout=\"%u\" "
@@ -199,7 +209,7 @@ int main (int argc, char *argv[])
 									((double) info->ping10) / 10.0,
 									((double) info->cpu) / 2.56,
 									((double) info->load1) / 100.0,
-									STR_STATUS[info->status & 15],
+									isacked ? "ACKED" : STR_STATUS[info->status & 15],
 									info->diskio,
 									*flags ? flags+2 : flags );
 						}
@@ -208,7 +218,7 @@ int main (int argc, char *argv[])
 							sprintf (outline, "%-17s                  ",
 									 addrbuf);
 							sprintf (outline+18, "%s        ",
-									 STR_STATUS[info->status&15]);
+									 isacked ? "ACKED" : STR_STATUS[info->status&15]);
 							if (info->status == ST_DEAD)
 							{
 								sprintf (outline+24, "   -.--   -.-- %% "
@@ -237,16 +247,19 @@ int main (int argc, char *argv[])
 							switch (RDSTATUS(info->status))
 							{
 								case ST_WARNING:
+									if (isacked) break;
 									printf ("=WARNING");
 									++numwarn; break;
 
 								case ST_STALE:
 								case ST_ALERT:
 								case ST_DEAD:
+									if (isacked) break;
 									printf ("=ALERT");
 									++numalert; break;
 
 								case ST_CRITICAL:
+									if (isacked) break;
 									printf ("=CRITICAL");
 									++numcrit; break;
 								

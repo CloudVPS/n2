@@ -38,6 +38,7 @@ void			 rec_set_status		(netload_rec *, status_t);
 void			 rec_set_ping10		(netload_rec *, int);
 void			 rec_set_loss		(netload_rec *, int);
 void			 rec_set_oflags		(netload_rec *, oflag_t);
+oflag_t			 rec_get_oflags		(netload_rec *);
 
 const char		*get_servicename	(int);
 

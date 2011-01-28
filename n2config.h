@@ -3,6 +3,21 @@
 
 #include "n2args.h"
 #include <stdio.h>
+#include <time.h>
+
+typedef struct ackednode_struc
+{
+	struct ackednode_struc *next;
+	unsigned long addr;
+	unsigned int acked_oflags;
+	unsigned char acked_flags;
+	unsigned char acked_stale_or_dead;
+	time_t expires;
+} ackednode;
+
+extern ackednode *ACKED;
+
+ackednode *find_acked (unsigned long);
 
 typedef void n2function (n2arglist *);
 
