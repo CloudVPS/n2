@@ -198,7 +198,6 @@ int main (int argc, char *argv[])
 							if( CHKOFLAG(info->oflags,OFLAG_DISKIO) ) strcat(flags,", diskio");
 							if( CHKOFLAG(info->oflags,OFLAG_DISKSPACE) ) strcat(flags,", diskspace");
 							if( CHKOFLAG(info->oflags,OFLAG_DECODINGERR) ) strcat(flags,", decodingerr");
-							if( isacked ) strcat(flags, ", acked");
 							// if( CHKSTATUSFLAG(info->status,FLAG_OTHER) ) strcat(flags,", other");
 
 							printf (" netin=\"%u\" netout=\"%u\" "
