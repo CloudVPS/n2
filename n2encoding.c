@@ -346,6 +346,8 @@ int validate_pkt (netload_pkt *pkt, const char *key)
 	unsigned char 	realsum[16];
 	realsum[0] = 0;
 	
+	if (! key) return 0;
+
 	md5_init (&md5state);
 	md5_append (&md5state, pkt->data+16, pkt->pos-16);
 	md5_append (&md5state, (const md5_byte_t*) key, strlen (key));

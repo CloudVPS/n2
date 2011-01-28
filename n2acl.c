@@ -487,6 +487,41 @@ const char *acl_get_key (acl *a)
 	return NULL;
 }
 
+static void print_indent (FILE *into, int indent)
+{
+	while (indent--) fputc (' ', into);
+}
+
+#define OCTETS(a) (a&0xff000000)>>24,(a&0xff0000)>>16,(a&0xff00)>>8,(a&0xff)
+#define DUMPPROP(fmt,propname) { \
+		print_indent (into, indent+2); \
+		fprintf (into, fmt, acl_get_ ## propname (a)); \
+	}
+
+void dump_acl_tree (FILE *into, acl *a, int indent)
+{
+	acl *aa;
+	
+	print_indent (into,indent);
+	fprintf (into, "acl %lu.%lu.%lu.%lu/%lu.%lu.%lu.%lu\n",
+			 OCTETS(a->addr), OCTETS(a->mask));
+	
+	DUMPPROP("key %s\n",key);
+	DUMPPROP("rtt-warning %i\n",rtt_warning);
+	DUMPPROP("rtt-alert %i\n",rtt_alert);
+	DUMPPROP("loadavg-warning %i\n",loadavg_warning);
+	DUMPPROP("loadavg-alert %i\n", loadavg_alert);
+	DUMPPROP("loss-warning %i\n",loss_warning);
+	DUMPPROP("loss-alert %i\n", loss_alert);
+	
+	aa = a->first;
+	while (aa)
+	{
+		dump_acl_tree (into, aa, indent+4);
+		aa = aa->next;
+	}
+}
+
 #ifdef UNIT_TEST
 
 groupdb GROUPS;

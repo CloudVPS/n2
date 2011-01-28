@@ -509,6 +509,10 @@ void load_config (const char *fname)
 		fclose (F);
 	}
 	CROOT = CONF_ROOT;
+	
+	/*F = fopen ("/var/state/n2/acl.states","w");
+	if (F) dump_acl_tree (F, ACL, 0);
+	fclose (F);*/
 }
 
 /* ------------------------------------------------------------------------- *\
@@ -714,15 +718,22 @@ void conf_monitor_host (n2arglist *arg)
 		mask = atomask ("0.0.0.0");
 		
 		myacl = acl_match_mask (addr, mask);
-		while (myacl)
+		if (myacl)
 		{
-			if ((myacl->addr == addr) && (myacl->mask == mask)) break;
-			if (! myacl->next)
+			while (myacl)
 			{
-				myacl = acl_create (addr, mask);
-				break;
+				if ((myacl->addr == addr) && (myacl->mask == mask)) break;
+				if (! myacl->next)
+				{
+					myacl = acl_create (addr, mask);
+					break;
+				}
+				myacl = myacl->next;
 			}
-			myacl = myacl->next;
+		}
+		else
+		{
+			myacl = acl_create (addr, mask);
 		}
 		
 		if (myacl)
@@ -733,6 +744,14 @@ void conf_monitor_host (n2arglist *arg)
 				myacl->loss_alert = 11000;
 			}
 		}
+		else
+		{
+			fprintf (stderr, "%% Syntax error in monitor-host %s\n", arg->argv[1]);
+		}
+	}
+	else
+	{
+		fprintf (stderr, "%% Syntax error in monitor-host\n");
 	}
 }
 

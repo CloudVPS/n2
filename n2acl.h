@@ -1,6 +1,8 @@
 #ifndef _N2ACL_H
 #define _N2ACL_H 1
 
+#include <stdio.h>
+
 typedef struct n2alias_struc
 {
 	unsigned long from_addr;
@@ -72,6 +74,8 @@ typedef struct acl_struc
 	unsigned int		 netout_warning, netout_alert;
 	unsigned short		 diskspace_warning, diskspace_alert;
 } acl;
+
+void dump_acl_tree (FILE *, acl *, int);
 
 /* The global root node, this will be initialized to
    contain an acl object for 0/0 with the defaults filled
