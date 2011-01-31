@@ -799,7 +799,7 @@ void rec_set_oflags (netload_rec *rec, oflag_t oflags)
 {
 	short oldpos;
 	oldpos = rec->pos;
-	rec->pos = 11;
+	rec->pos = 12;
 	pkt_print32 ((netload_pkt *) rec, oflags);
 	rec->pos = oldpos;
 }
