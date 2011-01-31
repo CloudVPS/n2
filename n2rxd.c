@@ -660,29 +660,14 @@ int main (int argc, char *argv[])
 						{
 							rec_set_ping10 (rec, 0);
 							rec_set_loss (rec, 10000);
+							ccrsr->status = ST_STALE;
 						}
 						
 						acked = find_acked (ccrsr->addr);
 						if (acked && (acked->acked_stale_or_dead))
 						{
-							isacked = 1;
-							myflags = RDFLAGS(ccrsr->status) & 0x07;
-							myoflags = rec_get_oflags(rec) & 0x7f000000;
-							
-							if (myoflags)
-							{
-								if ((myoflags & acked->acked_oflags) != myoflags) isacked = 0;
-							}
-							
-							if (myflags)
-							{
-								if ((myflags & acked->acked_flags) != myflags) isacked = 0;
-							}
-							
-							if (isacked)
-							{
-								rec_set_oflags (rec, myoflags | OFLAG_ACKED);
-							}
+							rec_set_status (rec, ccrsr->status | (1<<(FLAG_OTHER+4)));
+							rec_set_oflags (rec, OFLAG_ACKED);
 						}
 						/* Store the updated data back on disk */
 						diskdb_setcurrent (ccrsr->addr, rec);
