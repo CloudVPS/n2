@@ -258,6 +258,8 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 			handle_status_change(rhost, RDSTATUS(status), ST_OK);
 			status = ST_OK;
 			hcache_setstatus (cache, rhost, ST_OK);
+			hcache_setoflags (cache, rhost, 0);
+			oflags = 0;
 		}
 		
 		if (uptime < hcache_getuptime (cache, rhost))
@@ -363,7 +365,15 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 				   record, then write the record back with
 				   the new information */
 				rec_set_status (rec, info->status);
-				rec_set_oflags (rec, info->oflags);
+				if (info->status <= ST_OK)
+				{
+					rec_set_oflags (rec, 0);
+					info->oflags = 0;
+				}
+				else
+				{
+					rec_set_oflags (rec, info->oflags);
+				}
 				diskdb_setcurrent (rhost, rec);
 			}
 			else
@@ -940,10 +950,13 @@ int check_alert_status (unsigned long rhost,
 	acked = find_acked (rhost);
 	if (acked)
 	{
-		if ((info->oflags ^ acked->acked_oflags == 0) &&
-		    (RDFLAGS(info->status) ^ acked->acked_flags == 0))
+		if (RDSTATUS(info->status) > ST_OK)
 		{
-			info->oflags |= 1<<OFLAG_ACKED;
+			if ((info->oflags ^ acked->acked_oflags == 0) &&
+				(RDFLAGS(info->status) ^ acked->acked_flags == 0))
+			{
+				info->oflags |= 1<<OFLAG_ACKED;
+			}
 		}
 	}
 	
