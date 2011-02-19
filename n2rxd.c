@@ -101,11 +101,11 @@ void udp_queue_init (void)
 	pthread_create (&QUEUE.thread, &QUEUE.attr, udp_receive_thread, NULL);
 }
 
-void reaper_init (void)
+void reaper_init (hcache *cache)
 {
 	bzero (&CLEANUP, sizeof(CLEANUP));
 	pthread_attr_init (&CLEANUP.attr);
-	pthread_create (&CLEANUP.thread, &CLEANUP.attr, reaper_thread, NULL);
+	pthread_create (&CLEANUP.thread, &CLEANUP.attr, reaper_thread, cache);
 }
 
 void log_init (void)
@@ -455,6 +455,8 @@ void reaper_thread (void *param)
 	unsigned short pingtime; 		/* Host's calculated pingtime */
 	unsigned short packetloss; 		/* Host's calculated packet loss */
 	
+	cache = param;
+	
 	while (1)
 	{
 		sleep (14);
@@ -684,7 +686,7 @@ int main (int argc, char *argv[])
 	udp_queue_init ();
 	systemlog ("Receiver thread initialized");
 	
-	reaper_init ();
+	reaper_init (cache);
 	systemlog ("Reaper thread initialized");
 	
 	/* Here the main loop starts */
