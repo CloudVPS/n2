@@ -51,6 +51,12 @@ typedef struct netload_queue_struc
 	pthread_t      thread;
 } netload_queue;
 
+typedef struct netload_cleanup_struc
+{
+	pthread_attr_t	attr;
+	pthread_t		thread;
+} netload_cleanup;
+
 typedef struct netload_logmeta_struc
 {
 	FILE *f;
@@ -60,6 +66,7 @@ typedef struct netload_logmeta_struc
 
 int				 UDPSOCK;
 netload_queue	 QUEUE;
+netload_cleanup	 CLEANUP;
 netload_logmeta	 LOG;
 
 void			 populate_cache (hcache *);
@@ -71,6 +78,7 @@ void			 errorlog (unsigned int, const char *);
 void			 eventlog (unsigned int, const char *);
 void			 handle_status_change (unsigned long, status_t, status_t);
 void			 udp_receive_thread (void *param);
+void			 reaper_thread (void *param);
 
 void			 daemonize (void);
 void			 huphandler (int);
@@ -91,6 +99,13 @@ void udp_queue_init (void)
 	
 	pthread_attr_init (&QUEUE.tattr);
 	pthread_create (&QUEUE.thread, &QUEUE.attr, udp_receive_thread, NULL);
+}
+
+void reaper_init (void)
+{
+	bzero (&CLEANUP, sizeof(CLEANUP));
+	pthread_attr_init (&CLEANUP.attr);
+	pthread_create (&CLEANUP.thread, &CLEANUP.attr, reaper_thread, NULL);
 }
 
 void log_init (void)
@@ -426,6 +441,147 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 	}
 }
 
+void reaper_thread (void *param)
+{
+	int i;
+	time_t ti;
+	
+	hcache *cache; 					/* Pointer to the hostcache root */
+	hcache_node *ccrsr; 			/* Cursor-pointers if we want to graze */
+	hcache_node *cnext; 			/* through the cache for something */
+	ackednode *acked;				/* pointer for acknowledged problems */
+	netload_rec *rec; 				/*  Disk record (address equals pkt) */
+	ping_log *plog; 				/* Pointer for the ping log array */
+	unsigned short pingtime; 		/* Host's calculated pingtime */
+	unsigned short packetloss; 		/* Host's calculated packet loss */
+	
+	while (1)
+	{
+		sleep (14);
+		ti = time (NULL);
+		eventlog (0, "Starting garbage collection round");
+		
+		/* Go over the hash buckets */
+		for (i=0; i<256; ++i)
+		{
+			ccrsr = cache->hash[i];
+			while (ccrsr) /* Iterate over the cache nodes */
+			{
+				if ((ti - ccrsr->lastseen) > 90) /* It's dead, Jim */
+				{
+					/* Update the disk record with the status and ping
+					   information */
+					
+					rec = diskdb_get_current ((unsigned long) ccrsr->addr);
+					if (! rec)
+					{
+						ccrsr = ccrsr->next;
+						continue;
+					}
+
+					if (RDSTATUS(ccrsr->status) < ST_STALE)
+					{
+						/* And we didn't know it was stale yet */
+						errorlog ((unsigned long) ccrsr->addr,
+								  "Status changed to STALE");
+						hostlog (ccrsr->addr, ccrsr->status, ST_STALE, 0,
+								 "Host went stale");
+						handle_status_change (ccrsr->addr, ccrsr->status,
+											  ST_STALE);
+						ccrsr->status = ST_STALE;
+						rec_set_status (rec, ST_STALE);
+						
+						
+					}
+					
+					plog = read_ping_data ((unsigned long) ccrsr->addr);
+					if (plog)
+					{
+						pingtime = calc_ping10 (plog);
+						packetloss = calc_loss (plog);
+						rec_set_ping10 (rec, pingtime);
+						rec_set_loss (rec, packetloss);
+						if (packetloss == 10000)
+						{
+							rec_set_status (rec, ST_DEAD);
+							if (RDSTATUS(ccrsr->status) < ST_DEAD)
+							{
+								hostlog (ccrsr->addr, ST_STALE, ST_DEAD, 0,
+										 "Full packet loss");
+								errorlog (ccrsr->addr, "Status changed "
+													   "to DEAD");
+								handle_status_change (ccrsr->addr,
+													  ccrsr->status,
+													  ST_DEAD);
+								ccrsr->status = ST_DEAD;
+							}
+						}
+						else
+						{
+							if (ccrsr->status == ST_DEAD)
+							{
+								errorlog (ccrsr->addr, "Status changed "
+										  "back to STALE");
+								hostlog (ccrsr->addr, ST_DEAD, ST_STALE, 0,
+										 "Ping traffic recovering");
+								rec_set_status (rec, ST_STALE);
+								ccrsr->status = ST_STALE;
+							}
+						}
+						pool_free (plog);
+					}
+					else
+					{
+						rec_set_ping10 (rec, 0);
+						rec_set_loss (rec, 10000);
+						ccrsr->status = ST_STALE;
+					}
+					
+					acked = find_acked (ccrsr->addr);
+					if (acked && (acked->acked_stale_or_dead))
+					{
+						rec_set_status (rec, ccrsr->status | (1<<(FLAG_OTHER+4)));
+						rec_set_oflags (rec, 1<<OFLAG_ACKED);
+					}
+					/* Store the updated data back on disk */
+					diskdb_setcurrent (ccrsr->addr, rec);
+					free (rec);
+				}
+				else if ((ti - ccrsr->lastseen) > 14)
+				{
+					/* Get new ping data */
+					rec = diskdb_get_current ((unsigned long) ccrsr->addr);
+					plog = read_ping_data ((unsigned long) ccrsr->addr);
+					
+					if (! rec)
+					{
+						ccrsr = ccrsr->next;
+						continue;
+					}
+					
+					if (plog)
+					{
+						pingtime = calc_ping10 (plog);
+						packetloss = calc_loss (plog);
+						rec_set_ping10 (rec, pingtime);
+						rec_set_loss (rec, packetloss);
+						pool_free (plog);
+					}
+					else
+					{
+						rec_set_ping10 (rec, 0);
+						rec_set_loss (rec, 10000);
+					}
+					
+					/* Store it back in the disk database */
+					diskdb_setcurrent (ccrsr->addr, rec);
+					free (rec);
+				}
+				ccrsr = ccrsr->next;
+			}
+		}
+	}
+}
 
 /* ------------------------------------------------------------------------- *\
  * FUNCTION main                                                             *
@@ -528,6 +684,9 @@ int main (int argc, char *argv[])
 	udp_queue_init ();
 	systemlog ("Receiver thread initialized");
 	
+	reaper_init ();
+	systemlog ("Reaper thread initialized");
+	
 	/* Here the main loop starts */
 	while (1)
 	{
@@ -591,132 +750,6 @@ int main (int argc, char *argv[])
 		   update the rtt/loss information for any hosts we find that
 		   haven't been updated in the last 15 seconds */
 		   
-		ti = time (NULL);
-		if ((ti - lastclean) > 14)
-		{
-			eventlog (0, "Starting garbage collection round");
-			lastclean = ti;
-			
-			/* Go over the hash buckets */
-			for (i=0; i<256; ++i)
-			{
-				ccrsr = cache->hash[i];
-				while (ccrsr) /* Iterate over the cache nodes */
-				{
-					if ((ti - ccrsr->lastseen) > 90) /* It's dead, Jim */
-					{
-						/* Update the disk record with the status and ping
-						   information */
-						
-						rec = diskdb_get_current ((unsigned long) ccrsr->addr);
-						if (! rec)
-						{
-							ccrsr = ccrsr->next;
-							continue;
-						}
-
-						if (RDSTATUS(ccrsr->status) < ST_STALE)
-						{
-							/* And we didn't know it was stale yet */
-							errorlog ((unsigned long) ccrsr->addr,
-									  "Status changed to STALE");
-							hostlog (ccrsr->addr, ccrsr->status, ST_STALE, 0,
-									 "Host went stale");
-							handle_status_change (ccrsr->addr, ccrsr->status,
-												  ST_STALE);
-							ccrsr->status = ST_STALE;
-							rec_set_status (rec, ST_STALE);
-							
-							
-						}
-						
-						plog = read_ping_data ((unsigned long) ccrsr->addr);
-						if (plog)
-						{
-							pingtime = calc_ping10 (plog);
-							packetloss = calc_loss (plog);
-							rec_set_ping10 (rec, pingtime);
-							rec_set_loss (rec, packetloss);
-							if (packetloss == 10000)
-							{
-								rec_set_status (rec, ST_DEAD);
-								if (RDSTATUS(ccrsr->status) < ST_DEAD)
-								{
-									hostlog (ccrsr->addr, ST_STALE, ST_DEAD, 0,
-											 "Full packet loss");
-									errorlog (ccrsr->addr, "Status changed "
-														   "to DEAD");
-									handle_status_change (ccrsr->addr,
-														  ccrsr->status,
-														  ST_DEAD);
-									ccrsr->status = ST_DEAD;
-								}
-							}
-							else
-							{
-								if (ccrsr->status == ST_DEAD)
-								{
-									errorlog (ccrsr->addr, "Status changed "
-											  "back to STALE");
-									hostlog (ccrsr->addr, ST_DEAD, ST_STALE, 0,
-											 "Ping traffic recovering");
-									rec_set_status (rec, ST_STALE);
-									ccrsr->status = ST_STALE;
-								}
-							}
-							pool_free (plog);
-						}
-						else
-						{
-							rec_set_ping10 (rec, 0);
-							rec_set_loss (rec, 10000);
-							ccrsr->status = ST_STALE;
-						}
-						
-						acked = find_acked (ccrsr->addr);
-						if (acked && (acked->acked_stale_or_dead))
-						{
-							rec_set_status (rec, ccrsr->status | (1<<(FLAG_OTHER+4)));
-							rec_set_oflags (rec, 1<<OFLAG_ACKED);
-						}
-						/* Store the updated data back on disk */
-						diskdb_setcurrent (ccrsr->addr, rec);
-						free (rec);
-					}
-					else if ((ti - ccrsr->lastseen) > 14)
-					{
-						/* Get new ping data */
-						rec = diskdb_get_current ((unsigned long) ccrsr->addr);
-						plog = read_ping_data ((unsigned long) ccrsr->addr);
-						
-						if (! rec)
-						{
-							ccrsr = ccrsr->next;
-							continue;
-						}
-						
-						if (plog)
-						{
-							pingtime = calc_ping10 (plog);
-							packetloss = calc_loss (plog);
-							rec_set_ping10 (rec, pingtime);
-							rec_set_loss (rec, packetloss);
-							pool_free (plog);
-						}
-						else
-						{
-							rec_set_ping10 (rec, 0);
-							rec_set_loss (rec, 10000);
-						}
-						
-						/* Store it back in the disk database */
-						diskdb_setcurrent (ccrsr->addr, rec);
-						free (rec);
-					}
-					ccrsr = ccrsr->next;
-				}
-			}
-		}
 	}
 }
 
