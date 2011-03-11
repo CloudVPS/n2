@@ -36,6 +36,8 @@ OBJS_PING = n2ping.o iptypes.o n2pingdb.o n2malloc.o
 
 OBJS_HSTAT = n2encoding.o iptypes.o n2diskdb.o n2hstat.o md5.o n2hostlog.o n2malloc.o
 
+OBJS_LOGWRITE = n2logwrite.o iptypes.o n2hostlog.o n2encoding.o md5.o n2malloc.o
+
 OBJS_RECONF = n2reconf.o n2malloc.o
 
 OBJS_HIST = n2encoding.o iptypes.o n2diskdb.o n2history.o md5.o n2hostlog.o n2malloc.o
@@ -56,7 +58,7 @@ OBJS_CONTROL = n2control.o n2malloc.o
 OBJS_CONFTOOL = n2conftool.o iptypes.o n2config.o n2acl.o n2args.o n2malloc.o n2encoding.o md5.o n2hostlog.o
 
 all: n2txd n2rxd n2ping n2hstat n2control n2history n2dump n2groups \
-	 n2reconf n2pgrep n2analyze n2rawdat n2contact
+	 n2reconf n2pgrep n2analyze n2rawdat n2contact n2logwrite
 
 install: all
 	@echo "##########################################################################"
@@ -90,6 +92,7 @@ justinstall: all
 	install -o root -g n2 -m 0755 n2control $(DESTDIR)/usr/bin/
 	install -o root -g n2 -m 0755 n2groups $(DESTDIR)/usr/bin/
 	install -o root -g n2 -m 0755 n2contact $(DESTDIR)/usr/bin/
+	install -o root -g n2 -m 0755 n2logwrite $(DESTDIR)/usr/bin/
 
 reallyinstall: all
 	install -d -o root -g root -m 0755 /var/state
@@ -114,6 +117,7 @@ reallyinstall: all
 	install -o root -g n2 -m 0750 n2rawdat /usr/bin/
 	install -o root -g n2 -m 4750 n2control /usr/bin/
 	install -o root -g n2 -m 0750 n2groups /usr/bin/
+	install -o root -g n2 -m 0755 n2logwrite /usr/bin/
 
 n2analyze: $(OBJS_ANALYZE)
 	$(CC) -o n2analyze $(OBJS_ANALYZE) $(LUALIBS)
@@ -132,6 +136,9 @@ n2conftool: $(OBJS_CONFTOOL)
 
 n2groups: $(OBJS_GROUPS)
 	$(CC) $(LDFLAGS) -o n2groups $(OBJS_GROUPS)
+	
+n2logwrite: $(OBJS_LOGWRITE)
+	$(CC) $(LDFLAGS) -o n2logwrite $(OBJS_LOGWRITE)
 
 n2reconf: $(OBJS_RECONF)
 	$(CC) $(LDFLAGS) -o n2reconf $(OBJS_RECONF)

@@ -175,10 +175,17 @@ void print_hostlog (unsigned int addr)
 			dstr[19] = 0;
 			st = log->entries[crsr].nstatus;
 			
-			printf ("%s [%5s] %s",
-					dstr+4,
-					STR_STATUS[RDSTATUS(st)],
-					log->entries[crsr].text);
+			if (st == ST_UNSET)
+			{
+				printf ("%s [ADMIN] %s", dstr+4, log->entries[crsr].text);
+			}
+			else
+			{
+				printf ("%s [%5s] %s",
+						dstr+4,
+						STR_STATUS[RDSTATUS(st)],
+						log->entries[crsr].text);
+			}
 			
 			if ((RDSTATUS(st) > ST_OK) && (RDSTATUS(st) < ST_STALE))
 			{
