@@ -282,11 +282,20 @@ void print_hostlog_xml (unsigned int addr)
 			make_flag_string (flagstr, log->entries[crsr].nstatus,
 							  log->entries[crsr].oflags);
 
-			printf ("    <event ts=\"%s\" oldstatus=\"%s\" "
-			        "newstatus=\"%s\" flagged=\"%s\">%s</event>\n",
-			        dstr, STR_STATUS[log->entries[crsr].ostatus & 15],
-			        STR_STATUS[log->entries[crsr].nstatus & 15],
-			        flagstr, encbuffer);
+			if (log->entries[crsr].nstatus == ST_UNSET)
+			{
+				printf ("    <event ts=\"%s\" oldstatus=\"ADMIN\" "
+						"newstatus=\"ADMIN\" flagged=\"%s\">%s</event>\n",
+						dstr, flagstr, encbuffer);
+			}
+			else
+			{
+				printf ("    <event ts=\"%s\" oldstatus=\"%s\" "
+						"newstatus=\"%s\" flagged=\"%s\">%s</event>\n",
+						dstr, STR_STATUS[log->entries[crsr].ostatus & 15],
+						STR_STATUS[log->entries[crsr].nstatus & 15],
+						flagstr, encbuffer);
+			}
 		}
 		crsr = (crsr + 1) & 63;
 	}
