@@ -182,18 +182,44 @@ class win32(blank):
         self.packet.ts = int(time.time())
             # for d in disks:   # win32net.NetServerDiskEnum(..)
         #     win32api.GetFreeDiskSpaceEx('c:\') -> [0] = free [1] = total [2] = free ???
-        mem = win32api.GlobalMemoryStatus()
-        self.packet.kmemfree = mem['AvailPhys']/1024
-        self.packet.kswapfree = mem['AvailPageFile']/1024
-        self.packet.ttyrec = self.getusers()
-        rx,tx = self.getnetwork()
+        try:
+            mem = win32api.GlobalMemoryStatus()
+            self.packet.kmemfree = mem['AvailPhys']/1024
+            self.packet.kswapfree = mem['AvailPageFile']/1024
+        except:
+            self.packet.kmemfree = 1048576
+            self.packet.kswapfree = 1048576
+
+        try:
+            self.packet.ttyrec = self.getusers()
+        except:
+            self.packet.ttyrec = []
+        try:
+            rx,tx = self.getnetwork()
+        except:
+            rx, tx = 0, 0
         self.packet.netout = tx/1024
         self.packet.netin = rx/1024
-        self.packet.cpu = self.getcpu()
-        self.packet.uptime = self.uptime()
-        self.packet.nproc = self.nproc()
-        self.packet.nrun = self.nrun()
-        self.packet.diskio = self.getdiskio() / 1024
+        try:
+            self.packet.cpu = self.getcpu()
+        except:
+            self.packet.cpu = 0
+        try:
+            self.packet.uptime = self.uptime()
+        except:
+            self.packet.uptime = 300
+        try:
+            self.packet.nproc = self.nproc()
+        except:
+            self.packet.nproc = 0
+        try:
+            self.packet.nrun = self.nrun()
+        except:
+            self.packet.nrun = 0
+        try:
+            self.packet.diskio = self.getdiskio() / 1024
+        except:
+            self.packet.diskio = 0
 
 if __name__ == '__main__':
     win32serviceutil.HandleCommandLine(n2txdservice, argv=['n2txd']+argv[1:])

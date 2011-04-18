@@ -1,5 +1,4 @@
-import socket
-import pprint
+import socket, pprint, sys
 
 from n2.packet import n2packet
 
@@ -11,3 +10,4 @@ def run(args=None):
         pdata = s.recv(4096)
         packet.frompacket(pdata)
         pprint.pprint(packet.__dict__)
+        sys.stdout.flush()
