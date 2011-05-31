@@ -837,10 +837,11 @@ void conf_monitor_host (n2arglist *arg)
 	/* monitor-host 1.2.3.4 ignore-loss */
 	unsigned long addr;
 	unsigned long mask;
+	int i;
 	acl *myacl;
 	
 	
-	if (arg->argc == 3)
+	if (arg->argc >= 3)
 	{
 		addr = atoip (arg->argv[1]);
 		mask = atomask ("0.0.0.0");
@@ -866,10 +867,18 @@ void conf_monitor_host (n2arglist *arg)
 		
 		if (myacl)
 		{
-			if (strcmp (arg->argv[2], "ignore-loss") == 0)
+			for (i=2; i<arg->argc; ++i)
 			{
-				myacl->loss_warning = 10500;
-				myacl->loss_alert = 11000;
+				if (strcmp (arg->argv[i], "ignore-loss") == 0)
+				{
+					myacl->loss_warning = 10500;
+					myacl->loss_alert = 11000;
+				}
+				else if (strcmp (arg->argv[i], "ignore-diskspace") == 0)
+				{
+					myacl->diskspace_warning = 1050;
+					myacl->diskspace_alert = 1100;
+				}
 			}
 		}
 		else
