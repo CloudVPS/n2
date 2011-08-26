@@ -345,12 +345,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 		rec = encode_rec (pkt, time (NULL), status,
 						  pingtime, packetloss, oflags);
 	
-		/* Write the record to disk. This may be redundant,
-		   but it will at least guarantee us a saved
-		   packet if something screws up with the decoding
-		   process. */
-		   
-		diskdb_setcurrent (rhost, rec);
+		
 		
 		/* decode the record so we can check for alerts */
 		if (decode_rec_inline (rec, info))
@@ -389,19 +384,15 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 				{
 					rec_set_oflags (rec, info->oflags);
 				}
-				diskdb_setcurrent (rhost, rec);
 			}
 			else
 			{
 				rec_set_status (rec, info->status);
 				rec_set_oflags (rec, info->oflags);
-				if (info->oflags != oflags)
-				{
-					diskdb_setcurrent (rhost, rec);
-				}
-				
 			}
 			
+			diskdb_setcurrent (rhost, rec);
+
 			sprintf (str, "Recv packet size=%i "
 						  "status=%s",
 						  rec->pos,
@@ -410,6 +401,9 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 		}
 		else /* validated */
 		{
+			/* write the broken record anyway */
+			diskdb_setcurrent (rhost, rec);
+			
 			if (!CHKOFLAG(oflags,OFLAG_DECODINGERR))
 			{
 				info->status = MKSTATUS(info->status,ST_ALERT);
