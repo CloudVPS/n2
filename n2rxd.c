@@ -627,7 +627,7 @@ int main (int argc, char *argv[])
 	conf_init ();
 	
 	/* Create the host cache */
-	cache = (hcache *) calloc (1, sizeof (hcache));
+	cache = hcache_create();
 	
 	/* Somehow repeatedly doing a calloc() and free() on an info structure
 	   makes the RSS/VSZ grow like a giraffe on hormones, so we allocate

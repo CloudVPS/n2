@@ -10,6 +10,19 @@
 #endif
 
 /* ------------------------------------------------------------------------- *\
+ * FUNCTION hcache_create                                                    *
+ * ----------------------                                                    *
+ * Creates and initializes a host cache structure.                           *
+\* ------------------------------------------------------------------------- */
+hcache *hcache_create (void)
+{
+	hcache *cache = (hcache *) calloc (1, sizeof (hcache));
+	pthread_mutexattr_init (&(cache->mutexattr));
+	pthread_mutex_init (&(cache->mutex),&(cache->mutexattr));
+	return cache;
+}
+
+/* ------------------------------------------------------------------------- *\
  * FUNCTION hcache_resolve (cache, addr)                                     *
  * -------------------------------------                                     *
  * Finds or creates a hcache_node for a specific IP address.                 *
@@ -24,12 +37,15 @@ hcache_node *hcache_resolve (hcache *cache, unsigned long addr)
 	/* The resultcache is a pointer to the last item requested from the
 	   cache. This speeds up consecutive calls to hcache_foo() functions
 	   some more */
-	   
-	if (cache->resultcache && (cache->resultcache->addr == addr))
+	
+	crsr = cache->resultcache;
+	if (crsr && (crsr->addr == addr))
 	{
 		dprintf ("--> in resultcache: %08x\n", cache->resultcache);
-		return cache->resultcache;
+		return crsr;
 	}
+
+	pthread_mutex_lock (&(cache->mutex));
 	
 	/* Use the lower octet of the ip address as a hash key */
 	crsr = cache->hash[addr & 0xff];
@@ -45,6 +61,7 @@ hcache_node *hcache_resolve (hcache *cache, unsigned long addr)
 		
 		cache->hash[addr & 0xff] = nod;
 		cache->resultcache = nod;
+		pthread_mutex_unlock (&(cache->mutex));
 		return nod;
 	}
 	
@@ -59,6 +76,7 @@ hcache_node *hcache_resolve (hcache *cache, unsigned long addr)
 			{
 				if ((time (NULL) - crsr->ctime) > 60) crsr->isfresh = 0;
 			}
+			pthread_mutex_unlock (&(cache->mutex));
 			return crsr;
 		}
 		if (crsr->next)
@@ -77,6 +95,7 @@ hcache_node *hcache_resolve (hcache *cache, unsigned long addr)
 			
 			crsr->next = nod;
 			cache->resultcache = nod;
+			pthread_mutex_unlock (&(cache->mutex));
 			return nod;
 		}
 	} while (1);
