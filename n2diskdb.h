@@ -34,7 +34,7 @@ unsigned int  tdate_sub			(unsigned int, int);
 void		  diskdb_setlck		(netload_rec *rec);
 void		  diskdb_clrlck		(netload_rec *rec);
 int			  diskdb_locked     (netload_rec *rec);
-FILE		 *diskdb_open		(unsigned long host, unsigned int date);
+int		 	  diskdb_open		(unsigned long host, unsigned int date);
 void		  diskdb_now		(unsigned int *, int *);
 
 void		  diskdb_setcurrent (unsigned long host,

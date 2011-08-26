@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 /* ------------------------------------------------------------------------- *\
  * FUNCTION diskdb_now (date, index)                                         *
@@ -157,14 +158,14 @@ int diskdb_locked (netload_rec *rec)
  * address and date. If none was found, this function will attempt to create *
  * a fresh database file with the required filename.                         *
 \* ------------------------------------------------------------------------- */
-FILE *diskdb_open (unsigned long host, unsigned int date)
+int diskdb_open (unsigned long host, unsigned int date)
 {
 	char filename[256];
 	char dirname[256];
 	char ipstr[32];
 	struct stat statbuf;
 	char *nullblock;
-	FILE *res;
+	int res;
 	int i;
 	
 	printip (host, ipstr);
@@ -175,36 +176,36 @@ FILE *diskdb_open (unsigned long host, unsigned int date)
 	
 	if (stat (filename, &statbuf)) /* true if the file doesn't exist */
 	{
-		res = fopen (filename, "a+");
-		if (! res)
+		res = open (filename, O_RDWR | O_CREAT);
+		if (res < 0)
 		{
 			fprintf (stderr, "diskdb_open: Could not create: %s: %s\n",
 					 filename, strerror (errno));
-			return NULL;
+			return -1;
 		}
 		
 		nullblock = (char *) calloc (1, (size_t) 92160);
 		
 		for (i=0; i<10; ++i)
 		{
-			fwrite (nullblock, (size_t) 92160, 1, res);
+			write (res, nullblock, 92160);
 		}
 		
 		free (nullblock);
-		fclose (res);
-		res = fopen (filename, "r+");
-		fseek (res, 0, SEEK_SET);
+		close (res);
+		res = open (filename, O_RDONLY);
+		lseek (res, 0, SEEK_SET);
 	}
 	else
 	{
-		res = fopen (filename, "r+");
-		if (! res)
+		res = open (filename, O_RDONLY);
+		if (res < 0)
 		{
 			fprintf (stderr, "diskdb_open: Could not open: %s: %s\n",
 					 filename, strerror (errno));
-			return NULL;
+			return -1;
 		}
-		fseek (res, 0, SEEK_SET);
+		lseek (res, 0, SEEK_SET);
 	}
 	
 	return res;
@@ -222,7 +223,7 @@ void diskdb_setcurrent (unsigned long host, netload_rec *rec)
 	char tempfilename[256];
 	char permfilename[256];
 	char ipstr[32];
-	FILE *f;
+	int f;
 	unsigned int date;
 	int index;
 	
@@ -232,16 +233,16 @@ void diskdb_setcurrent (unsigned long host, netload_rec *rec)
 	sprintf (tempfilename, "/var/state/n2/tmp/%s", ipstr);
 	sprintf (permfilename, "/var/state/n2/current/%s", ipstr);
 	
-	f = fopen (tempfilename, "w");
-	if (! f)
+	f = open (tempfilename, O_WRONLY | O_CREAT);
+	if (f < 0)
 	{
 		fprintf (stderr, "diskdb_setcurrent: Could not open: %s: %s\n",
 				 tempfilename, strerror (errno));
 		return;
 	}
 	
-	fwrite (rec, (size_t) 640, 1, f);
-	fclose (f);
+	write (f, rec, 640);
+	close (f);
 	rename (tempfilename, permfilename);
 
 	diskdb_store (host, rec, date, index);
@@ -255,29 +256,24 @@ void diskdb_setcurrent (unsigned long host, netload_rec *rec)
 void diskdb_store (unsigned long host, netload_rec *rec,
 				   unsigned int date, int index)
 {
-	FILE *f;
+	int f;
 	
 	f = diskdb_open (host, date);
-	if (! f)
+	if (f < 0)
 	{
 		fprintf (stderr, "diskdb_store: Could not open diskdb\n");
 		return;
 	}
 	
-	if (fseek (f, 640 * index, SEEK_SET))
+	if (lseek (f, 640 * index, SEEK_SET))
 	{
 		fprintf (stderr, "diskdb_store: Failed seek offset=%i\n", 640*index);
-		fclose (f);
+		close (f);
 		return;
 	}
 	
-	diskdb_setlck (rec);
-	fwrite (rec, (size_t) 640, 1, f);
-	diskdb_clrlck (rec);
-	fseek (f, 640 * index, SEEK_SET);
-	fwrite (rec, (size_t) 640, 1, f);
-	fseek (f, 0, SEEK_END);
-	fclose (f);
+	write (f, rec, 640);
+	close (f);
 }
 
 /* ------------------------------------------------------------------------- *\
@@ -288,9 +284,8 @@ void diskdb_store (unsigned long host, netload_rec *rec,
 \* ------------------------------------------------------------------------- */
 netload_rec *diskdb_get (unsigned long host, unsigned int date, int index)
 {
-	int valid;
 	int retries;
-	FILE *f;
+	int f;
 	size_t sz;
 	struct stat st;
 	char filename[256];
@@ -299,65 +294,41 @@ netload_rec *diskdb_get (unsigned long host, unsigned int date, int index)
 	char ipstr[32];
 	netload_rec *rec;
 	
-	valid = 0;
-	retries = 0;
 	printip (host, ipstr);
 	sprintf (filename, "/var/state/n2/log/%s/%s-%u.n2db", ipstr, ipstr, date);
 	
-	f = fopen (filename, "r");
-	if (! f)
+	f = open (filename, O_RDONLY);
+	if (f < 0)
 	{
 		return NULL;
 	}
 	
-	while (! valid)
+	if (lseek (f, 640 * index, SEEK_SET))
 	{
-		if (fseek (f, 640 * index, SEEK_SET))
-		{
-			fprintf (stderr, "diskdb_get: Failed seek offset=%i\n", 640 * index);
-			fclose (f);
-			return NULL;
-		}
-	
-		rec = (netload_rec *) calloc (1, sizeof (netload_rec));
-	
-		if ((sz = fread (rec, 1, 640, f) != 640))
-		{
-			fprintf (stderr, "diskdb_get: Short read sz=%u\n", sz);
-			fclose (f);
-			free (rec);
-			return NULL;
-		}
-		
-		rec->pos = 4;
-		rec->rpos = 2;
-		rec->eof = 0;
-		sz = rec_read16 (rec);
-		rec->pos = sz;
-		rec->rpos = 0;
-		rec->eof = 0;
-		
-		if (! diskdb_locked (rec))
-		{
-			valid = 1;
-		}
-		else
-		{
-			++retries;
-			if (retries > 8)
-			{
-				fprintf (stderr, "diskdb_get: Stale lock, overriding\n");
-				valid = 1;
-			}
-			else
-			{
-				free (rec);
-				usleep (100);
-			}
-		}
+		fprintf (stderr, "diskdb_get: Failed seek offset=%i\n", 640 * index);
+		close (f);
+		return NULL;
+	}
+
+	rec = (netload_rec *) calloc (1, sizeof (netload_rec));
+
+	if ((sz = read (f, rec, 640)) != 640)
+	{
+		fprintf (stderr, "diskdb_get: Short read sz=%u\n", sz);
+		close (f);
+		free (rec);
+		return NULL;
 	}
 	
-	fclose (f);
+	rec->pos = 4;
+	rec->rpos = 2;
+	rec->eof = 0;
+	sz = rec_read16 (rec);
+	rec->pos = sz;
+	rec->rpos = 0;
+	rec->eof = 0;
+		
+	close (f);
 	return rec;
 }
 
@@ -371,7 +342,7 @@ netload_rec *diskdb_get_current (unsigned long host)
 {
 	int valid;
 	int retries;
-	FILE *f;
+	int f;
 	size_t sz;
 	char filename[256];
 	char ipstr[32];
@@ -382,8 +353,8 @@ netload_rec *diskdb_get_current (unsigned long host)
 	printip (host, ipstr);
 	sprintf (filename, "/var/state/n2/current/%s", ipstr);
 	
-	f = fopen (filename, "r");
-	if (! f)
+	f = open (filename, O_RDONLY);
+	if (f < 0)
 	{
 		fprintf (stderr, "diskdb_get_current: Could not open: %s: %s\n",
 				 filename, strerror (errno));
@@ -392,10 +363,10 @@ netload_rec *diskdb_get_current (unsigned long host)
 	
 	rec = (netload_rec *) calloc (1, sizeof (netload_rec));
 
-	if ((sz = fread (rec, 1, 640, f) != 640))
+	if ((sz = read (f, rec, 640) != 640))
 	{
 		fprintf (stderr, "diskdb_get: Short read sz=%u\n", sz);
-		fclose (f);
+		close (f);
 		free (rec);
 		return NULL;
 	}
@@ -408,7 +379,7 @@ netload_rec *diskdb_get_current (unsigned long host)
 	rec->rpos = 0;
 	rec->eof = 0;
 	
-	fclose (f);
+	close (f);
 	return rec;
 }
 
