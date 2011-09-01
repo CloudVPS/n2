@@ -26,6 +26,13 @@ typedef struct hcachenode_struc
 	unsigned int			 services;
 	unsigned int			 alertlevel;
 	time_t					 ctime;
+	unsigned int			 netin;
+	unsigned int			 netout;
+	unsigned short			 ping10;
+	unsigned short			 loss;
+	unsigned char			 cpu;
+	unsigned short			 load1;
+	unsigned int			 diskio;
 	unsigned char			 isfresh;
 } hcache_node;
 
@@ -34,6 +41,20 @@ typedef struct hcache_struc
 	hcache_node	*hash[256];
 	hcache_node *resultcache;
 } hcache;
+
+typedef struct hstat_struc
+{
+	unsigned long addr;
+	status_t status;
+	oflag_t oflags;
+	unsigned int netin;
+	unsigned int netout;
+	unsigned short ping10;
+	unsigned short loss;
+	unsigned char cpu;
+	unsigned short load1;
+	unsigned int diskio;
+} hstat;
 
 hcache_node 	*hcache_resolve (hcache *, unsigned long);
 unsigned int	 hcache_getlast (hcache *, unsigned long);
@@ -46,5 +67,10 @@ void			 hcache_setstatus (hcache *, unsigned long, status_t);
 void			 hcache_setuptime (hcache *, unsigned long, unsigned int);
 void			 hcache_setservices (hcache *, unsigned long, unsigned int);
 void			 hcache_setoflags (hcache *, unsigned long, oflag_t);
+void			 hcache_setdata (hcache *, unsigned long,
+								 unsigned int, unsigned int,
+								 unsigned short, unsigned short,
+								 unsigned short, unsigned char,
+								 unsigned int);
 
 #endif

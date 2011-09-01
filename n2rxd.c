@@ -353,6 +353,10 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 			   return a true if the status was changed from
 			   our existing status. */
 			
+			hcache_setdata (cache, rhost, info->netin, info->netout,
+							info->ping10, info->loss,
+							info->load1, info->cpu, info->diskio);
+
 			if (check_alert_status (rhost, info, status, cacl, cnode))
 			{
 				/* Keep quiet about ST_STARTUP issues */
@@ -445,6 +449,8 @@ void reaper_thread (void *param)
 	ping_log *plog; 				/* Pointer for the ping log array */
 	unsigned short pingtime; 		/* Host's calculated pingtime */
 	unsigned short packetloss; 		/* Host's calculated packet loss */
+	FILE *statfile;
+	hstat stbuf;
 	
 	cache = param;
 	
@@ -452,7 +458,13 @@ void reaper_thread (void *param)
 	{
 		sleep (14);
 		ti = time (NULL);
-		eventlog (0, "Starting garbage collection round");
+		eventlog (0, "Starting garbage collection/summary round");
+		statfile = fopen ("/var/state/n2/tmp/summary", "w");
+		if (! statfile)
+		{
+			eventlog (0, "Error opening summary tempfile");
+			statfile = fopen ("/dev/null","w");
+		}
 		
 		/* Go over the hash buckets */
 		for (i=0; i<256; ++i)
@@ -494,6 +506,8 @@ void reaper_thread (void *param)
 						packetloss = calc_loss (plog);
 						rec_set_ping10 (rec, pingtime);
 						rec_set_loss (rec, packetloss);
+						ccrsr->ping10 = pingtime;
+						ccrsr->loss = packetloss;
 						if (packetloss == 10000)
 						{
 							rec_set_status (rec, ST_DEAD);
@@ -527,13 +541,17 @@ void reaper_thread (void *param)
 					{
 						rec_set_ping10 (rec, 0);
 						rec_set_loss (rec, 10000);
+						ccrsr->ping10 = 0;
+						ccrsr->loss = 10000;
 						ccrsr->status = ST_STALE;
 					}
 					
 					acked = find_acked (ccrsr->addr);
 					if (acked && (acked->acked_stale_or_dead))
 					{
-						rec_set_status (rec, ccrsr->status | (1<<(FLAG_OTHER+4)));
+						ccrsr->status |= (1<<(FLAG_OTHER+4));
+						ccrsr->oflags |= (1<<OFLAG_ACKED);
+						rec_set_status (rec, ccrsr->status);;
 						rec_set_oflags (rec, 1<<OFLAG_ACKED);
 					}
 					/* Store the updated data back on disk */
@@ -556,12 +574,14 @@ void reaper_thread (void *param)
 					{
 						pingtime = calc_ping10 (plog);
 						packetloss = calc_loss (plog);
+						ccrsr->ping10 = pingtime;
 						rec_set_ping10 (rec, pingtime);
 						rec_set_loss (rec, packetloss);
 						pool_free (plog);
 					}
 					else
 					{
+						ccrsr->ping10 = 0;
 						rec_set_ping10 (rec, 0);
 						rec_set_loss (rec, 10000);
 					}
@@ -570,9 +590,22 @@ void reaper_thread (void *param)
 					diskdb_setcurrent (ccrsr->addr, rec);
 					free (rec);
 				}
+				stbuf.addr = ccrsr->addr;
+				stbuf.status = ccrsr->status;
+				stbuf.oflags = ccrsr->oflags;
+				stbuf.netin = ccrsr->netin;
+				stbuf.netout = ccrsr->netout;
+				stbuf.ping10 = ccrsr->ping10;
+				stbuf.cpu = ccrsr->cpu;
+				stbuf.load1 = ccrsr->load1;
+				stbuf.diskio = ccrsr->diskio;
+				fwrite (&stbuf, sizeof (hstat), 1, statfile);
 				ccrsr = ccrsr->next;
 			}
 		}
+
+		fclose (statfile);
+		rename ("/var/state/n2/tmp/summary", "/var/state/n2/current/summary");
 	}
 }
 

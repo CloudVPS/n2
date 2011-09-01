@@ -5,6 +5,7 @@
 #include "n2acl.h"
 #include "n2config.h"
 #include "n2malloc.h"
+#include "hcache.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +15,7 @@
 
 typedef struct ipnode_st
 {
-	unsigned int addr;
+	hstat st;
 	struct ipnode_st *next;
 } ipnode;
 
@@ -31,12 +32,13 @@ int main (int argc, char *argv[])
 {
 	DIR *dir;
 	struct dirent *de;
+	FILE *fsumm;
 	char *name;
 	unsigned int addr;
 	hostgroup *grp;
 	int first=1;
 	netload_rec *rec;
-	netload_info *info;
+	hstat *info;
 	unsigned long long netin, netout;
 	int numwarn, numalert, numcrit;
 	int rtt, count;
@@ -80,57 +82,32 @@ int main (int argc, char *argv[])
 				//                    Kb/s   "
 	}
 	
-	dir = opendir ("/var/state/n2/current");
-	while (de = readdir (dir))
+	fsumm = fopen ("/var/state/n2/current/summary", "r");
+	if (! fsumm)
 	{
-		if (strlen (de->d_name) > 4)
-		{
-			newnode = (ipnode *) malloc (sizeof (ipnode));
-			newnode->next = NULL;
-			newnode->addr = atoip (de->d_name);
-			if (currentnode)
-			{
-				currentnode->next = newnode;
-				currentnode = newnode;
-			}
-			else
-			{
-				currentnode = firstnode = newnode;
-			}
-		}
+		fprintf (stderr, "%% Error loading summary file\n");
+		return 1;
 	}
-	closedir (dir);
-	
-	dir = opendir ("/var/state/n2/current");
-	while (de = readdir (dir))
+
+	newnode = (ipnode *) malloc (sizeof (ipnode));
+
+	while (fread (newnode, sizeof (hstat), 1, fsumm) > 0)
 	{
-		if (strlen (de->d_name) > 4)
+		newnode->next = NULL;
+		if (currentnode)
 		{
-			addr = atoip (de->d_name);
-			currentnode = firstnode;
-			if (! currentnode)
-			{
-				currentnode = (ipnode *) malloc (sizeof (ipnode));
-				currentnode->next = NULL;
-				currentnode->addr = addr;
-				firstnode = currentnode;
-			}
-			else
-			{
-				while (currentnode->addr != addr && currentnode->next)
-					currentnode = currentnode->next;
-				
-				if (currentnode->addr != addr)
-				{
-					newnode = (ipnode *) malloc (sizeof (ipnode));
-					newnode->next = NULL;
-					newnode->addr = addr;
-					currentnode->next = newnode;
-				}
-			}
+			currentnode->next = newnode;
+			currentnode = newnode;
 		}
+		else
+		{
+			currentnode = firstnode = newnode;
+		}
+
+		newnode = (ipnode *) malloc (sizeof (ipnode));
 	}
-	closedir (dir);
+	fclose (fsumm);
+	free (newnode);
 
 	grp = GROUPS.groups;
 	
@@ -154,7 +131,7 @@ int main (int argc, char *argv[])
 			currentnode = firstnode;
 			while (currentnode)
 			{
-				addr = currentnode->addr;
+				addr = currentnode->st.addr;
 				printip (addr, addrbuf);
 				if (grp == hostgroup_acl_resolve (addr))
 				{
@@ -168,9 +145,7 @@ int main (int argc, char *argv[])
 						printf ("%s%s", first ? "" : " ", addrbuf);
 					}
 					first = 0;
-					info = NULL;
-					rec = diskdb_get_current (addr);
-					if (rec) info = decode_rec (rec);
+					info = &(currentnode->st);
 					if (info)
 					{
 						if (CHKOFLAG(info->oflags,OFLAG_ACKED))

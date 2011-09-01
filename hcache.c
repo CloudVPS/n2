@@ -202,6 +202,9 @@ void hcache_setuptime (hcache *cache, unsigned long addr, unsigned int upt)
 	node->lastseen = time (NULL);
 }
 
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION hcache_setservices (cache, addr, bitmask)                        *
+\* ------------------------------------------------------------------------- */
 void hcache_setservices (hcache *cache, unsigned long addr, unsigned int s)
 {
 	hcache_node *node;
@@ -210,6 +213,9 @@ void hcache_setservices (hcache *cache, unsigned long addr, unsigned int s)
 	node->services = s;
 }
 
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION hcache_setoflags (cache, addr, oflags)                           *
+\* ------------------------------------------------------------------------- */
 void hcache_setoflags (hcache *cache, unsigned long addr, oflag_t oflags)
 {
 	hcache_node *node = hcache_resolve (cache, addr);
@@ -217,3 +223,18 @@ void hcache_setoflags (hcache *cache, unsigned long addr, oflag_t oflags)
 	node->oflags = oflags;
 }
 
+void hcache_setdata (hcache *cache, unsigned long addr,
+					 unsigned int netin, unsigned int netout,
+					 unsigned short ping10, unsigned short loss,
+					 unsigned short load1, unsigned char cpu,
+					 unsigned int diskio)
+{
+	hcache_node *node = hcache_resolve (cache, addr);
+	if (node == NULL) return;
+	node->netin = netin;
+	node->netout = netout;
+	node->ping10 = ping10;
+	node->load1 = load1;
+	node->cpu = cpu;
+	node->diskio = diskio;
+}
