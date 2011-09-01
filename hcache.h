@@ -31,13 +31,10 @@ typedef struct hcachenode_struc
 
 typedef struct hcache_struc
 {
-	hcache_node			*hash[256];
-	hcache_node			*resultcache;
-	pthread_mutexattr_t	 mutexattr;
-	pthread_mutexattr_t	 mutex;
+	hcache_node	*hash[256];
+	hcache_node *resultcache;
 } hcache;
 
-hcache			*hcache_create (void);
 hcache_node 	*hcache_resolve (hcache *, unsigned long);
 unsigned int	 hcache_getlast (hcache *, unsigned long);
 status_t		 hcache_getstatus (hcache *, unsigned long);

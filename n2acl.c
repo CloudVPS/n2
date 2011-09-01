@@ -97,6 +97,115 @@ acl *acl_match (unsigned long addr)
 }
 
 /* ------------------------------------------------------------------------- *\
+ * FUNCTION hostgroup_create (name)                                          *
+ * --------------------------------                                          *
+ * Creates a new named hostgroup and links it in.                            *
+\* ------------------------------------------------------------------------- */
+hostgroup *hostgroup_create (const char *name)
+{
+	hostgroup *crsr;
+	hostgroup *res = (hostgroup *) pool_calloc (sizeof (hostgroup));
+
+	strncpy (res->name, name, 47);
+	res->description[0] = 0;
+	crsr = GROUPS.groups;
+	if (! crsr)
+	{
+		GROUPS.groups = res;
+		return res;
+	}
+	while (crsr->next) crsr = crsr->next;
+	crsr->next = res;
+	return res;
+}
+
+unsigned long translate_alias (unsigned long addr)
+{
+	n2alias *a = ALIASES;
+	while (a)
+	{
+		if (a->from_addr == addr) return a->to_addr;
+		a = a->next;
+	}
+	return addr;
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION hostgroup_resolve (name)                                         *
+ * ---------------------------------                                         *
+ * Looks up a hostgroup by its name.                                         *
+\* ------------------------------------------------------------------------- */
+hostgroup *hostgroup_resolve (const char *name)
+{
+	hostgroup *crsr;
+	
+	crsr = GROUPS.groups;
+	while (crsr)
+	{
+		if (! strcmp (name, crsr->name)) return crsr;
+		crsr = crsr->next;
+	}
+	return NULL;
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION hostgroup_acl_create (group, address, mask)                      *
+ * ----------------------------------------------------                      *
+ * Creates a membership acl for the provided hostgroup.                      *
+\* ------------------------------------------------------------------------- */
+void hostgroup_acl_create (hostgroup *grp, unsigned long addr, unsigned long mask)
+{
+	hostgroup_acl *crsr;
+	hostgroup_acl *res;
+	int hidx;
+	
+	res = (hostgroup_acl *) calloc (sizeof (hostgroup_acl), 1);
+	res->addr = addr;
+	res->mask = mask;
+	res->group = grp;
+	res->next = NULL;
+	
+	hidx = (((addr & 0xff000000) >> 24) ^ ((addr & 0xff0000) >> 16)) & 0xff;
+	
+	crsr = GROUPS.hash[hidx];
+	if (crsr == NULL)
+	{
+		GROUPS.hash[hidx] = res;
+		return;
+	}
+	while (crsr->next != NULL)
+	{
+		crsr = crsr->next;
+	}
+	crsr->next = res;
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION hostgroup_acl_resolve (address)                                  *
+ * ----------------------------------------                                  *
+ * Resolves an address membership to a hostgroup.                            *
+\* ------------------------------------------------------------------------- */
+hostgroup *hostgroup_acl_resolve (unsigned long addr)
+{
+	hostgroup_acl *crsr;
+	int hidx;
+	
+	hidx = (((addr & 0xff000000) >> 24) ^ ((addr & 0xff0000) >> 16)) & 0xff;
+	crsr = GROUPS.hash[hidx];
+	if (! crsr) return NULL;
+	
+	while (crsr)
+	{
+		if ( (addr & crsr->mask) == crsr->addr )
+		{
+			return crsr->group;
+		}
+		crsr = crsr->next;
+	}
+	return NULL;
+}
+
+/* ------------------------------------------------------------------------- *\
  * FUNCTION acl_unlink (acl)                                                 *
  * -------------------------                                                 *
  * Unlinks a linked acl object from its parent and siblings.                 *
@@ -137,6 +246,18 @@ void acl_unlink (acl *a)
 		}
 	}
 }
+
+/*
+void acl_dump (void)
+{
+	acl *c;
+	c = ACL;
+	while (c)
+	{
+		printf ("%08x/%08x\n", res->addr, res->mask);
+		printf ("  key <%s>\n", res->key);
+	}
+} */
 
 /* ------------------------------------------------------------------------- *\
  * FUNCTION acl_create (address, bitmask)                                    *
@@ -307,6 +428,22 @@ void acl_add_contact (acl *a, const char *url)
 	c->next = newc;
 }
 
+void alias_clear (void)
+{
+	n2alias *crs;
+	n2alias *next;
+	
+	crs = ALIASES;
+	while (crs)
+	{
+		next = crs->next;
+		free (crs);
+		crs = next;
+	}
+	
+	ALIASES = NULL;
+}
+
 /* ------------------------------------------------------------------------- *\
  * FUNCTION acl_clear (void)                                                 *
  * -------------------------                                                 *
@@ -343,12 +480,6 @@ void acl_clear (void)
 	alias_clear ();
 }
 
-/* ------------------------------------------------------------------------- *\
- * FUNCTION acl_get_key (acl)                                                *
- * --------------------------                                                *
- * Gets the key from a matched acl, traversing back up to a parent acl if    *
- * no key has been set for the more specific acl.                            *
-\* ------------------------------------------------------------------------- */
 const char *acl_get_key (acl *a)
 {
 	if (a->key[0]) return a->key;
@@ -356,9 +487,6 @@ const char *acl_get_key (acl *a)
 	return NULL;
 }
 
-/* ------------------------------------------------------------------------- *\
- * FUNCTION print_indent                                                     *
-\* ------------------------------------------------------------------------- */
 static void print_indent (FILE *into, int indent)
 {
 	while (indent--) fputc (' ', into);
@@ -370,9 +498,6 @@ static void print_indent (FILE *into, int indent)
 		fprintf (into, fmt, acl_get_ ## propname (a)); \
 	}
 
-/* ------------------------------------------------------------------------- *\
- * FUNCTION dump_acl_tree                                                    *
-\* ------------------------------------------------------------------------- */
 void dump_acl_tree (FILE *into, acl *a, int indent)
 {
 	acl *aa;
@@ -395,141 +520,6 @@ void dump_acl_tree (FILE *into, acl *a, int indent)
 		dump_acl_tree (into, aa, indent+4);
 		aa = aa->next;
 	}
-}
-
-/* ------------------------------------------------------------------------- *\
- * FUNCTION hostgroup_create (name)                                          *
- * --------------------------------                                          *
- * Creates a new named hostgroup and links it in.                            *
-\* ------------------------------------------------------------------------- */
-hostgroup *hostgroup_create (const char *name)
-{
-	hostgroup *crsr;
-	hostgroup *res = (hostgroup *) pool_calloc (sizeof (hostgroup));
-
-	strncpy (res->name, name, 47);
-	res->description[0] = 0;
-	crsr = GROUPS.groups;
-	if (! crsr)
-	{
-		GROUPS.groups = res;
-		return res;
-	}
-	while (crsr->next) crsr = crsr->next;
-	crsr->next = res;
-	return res;
-}
-
-/* ------------------------------------------------------------------------- *\
- * FUNCTION hostgroup_resolve (name)                                         *
- * ---------------------------------                                         *
- * Looks up a hostgroup by its name.                                         *
-\* ------------------------------------------------------------------------- */
-hostgroup *hostgroup_resolve (const char *name)
-{
-	hostgroup *crsr;
-	
-	crsr = GROUPS.groups;
-	while (crsr)
-	{
-		if (! strcmp (name, crsr->name)) return crsr;
-		crsr = crsr->next;
-	}
-	return NULL;
-}
-
-/* ------------------------------------------------------------------------- *\
- * FUNCTION hostgroup_acl_create (group, address, mask)                      *
- * ----------------------------------------------------                      *
- * Creates a membership acl for the provided hostgroup.                      *
-\* ------------------------------------------------------------------------- */
-void hostgroup_acl_create (hostgroup *grp, unsigned long addr, unsigned long mask)
-{
-	hostgroup_acl *crsr;
-	hostgroup_acl *res;
-	int hidx;
-	
-	res = (hostgroup_acl *) calloc (sizeof (hostgroup_acl), 1);
-	res->addr = addr;
-	res->mask = mask;
-	res->group = grp;
-	res->next = NULL;
-	
-	hidx = (((addr & 0xff000000) >> 24) ^ ((addr & 0xff0000) >> 16)) & 0xff;
-	
-	crsr = GROUPS.hash[hidx];
-	if (crsr == NULL)
-	{
-		GROUPS.hash[hidx] = res;
-		return;
-	}
-	while (crsr->next != NULL)
-	{
-		crsr = crsr->next;
-	}
-	crsr->next = res;
-}
-
-/* ------------------------------------------------------------------------- *\
- * FUNCTION hostgroup_acl_resolve (address)                                  *
- * ----------------------------------------                                  *
- * Resolves an address membership to a hostgroup.                            *
-\* ------------------------------------------------------------------------- */
-hostgroup *hostgroup_acl_resolve (unsigned long addr)
-{
-	hostgroup_acl *crsr;
-	int hidx;
-	
-	hidx = (((addr & 0xff000000) >> 24) ^ ((addr & 0xff0000) >> 16)) & 0xff;
-	crsr = GROUPS.hash[hidx];
-	if (! crsr) return NULL;
-	
-	while (crsr)
-	{
-		if ( (addr & crsr->mask) == crsr->addr )
-		{
-			return crsr->group;
-		}
-		crsr = crsr->next;
-	}
-	return NULL;
-}
-
-/* ------------------------------------------------------------------------- *\
- * FUNCTION translate_alias (addr)                                           *
- * -------------------------------                                           *
- * Translates an address of it is aliased.                                   *
-\* ------------------------------------------------------------------------- */
-unsigned long translate_alias (unsigned long addr)
-{
-	n2alias *a = ALIASES;
-	while (a)
-	{
-		if (a->from_addr == addr) return a->to_addr;
-		a = a->next;
-	}
-	return addr;
-}
-
-/* ------------------------------------------------------------------------- *\
- * FUNCTION alias_clear                                                      *
- * --------------------                                                      *
- * Reinitializes the address alias list.                                     *
-\* ------------------------------------------------------------------------- */
-void alias_clear (void)
-{
-	n2alias *crs;
-	n2alias *next;
-	
-	crs = ALIASES;
-	while (crs)
-	{
-		next = crs->next;
-		free (crs);
-		crs = next;
-	}
-	
-	ALIASES = NULL;
 }
 
 #ifdef UNIT_TEST
