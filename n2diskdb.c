@@ -73,6 +73,7 @@ unsigned int tdate_sub (unsigned int tdate, int amount)
 void diskdb_setlck (netload_rec *rec)
 {
 	unsigned char hiby, loby;
+	unsigned char lockid;
 	int sz;
 	
 	hiby = rec->data[3];
@@ -89,36 +90,10 @@ void diskdb_setlck (netload_rec *rec)
 		sz = 640;
 	}
 	
-	rec->data[0] = 0x4c;
-	rec->data[sz-1] = 0x4c;
-}
+	lockid = rand() & 0xff;
 
-/* ------------------------------------------------------------------------- *\
- * FUNCTION diskdb_clrlck (rec)                                              *
- * ----------------------------                                              *
- * Clears the head and tail locks of a disk record structure.                *
-\* ------------------------------------------------------------------------- */
-void diskdb_clrlck (netload_rec *rec)
-{
-	unsigned char hiby, loby;
-	int sz;
-	
-	hiby = rec->data[3];
-	loby = rec->data[2];
-	
-	sz = loby + (hiby << 8);
-	if (sz > 640)
-	{
-		hiby = 2;
-		loby = 128;
-		
-		rec->data[3] = hiby;
-		rec->data[2] = loby;
-		sz = 640;
-	}
-	
-	rec->data[0] = 0x00;
-	rec->data[sz-1] = 0x00;
+	rec->data[0] = lockid;
+	rec->data[sz-1] = lockid;
 }
 
 /* ------------------------------------------------------------------------- *\
@@ -145,8 +120,7 @@ int diskdb_locked (netload_rec *rec)
 		sz = 640;
 	}
 	
-	if (rec->data[0] == 0x4c) return 1;
-	if (rec->data[sz-1] == 0x4c) return 1;
+	if (rec->data[0] != rec->data[sz-1]) return 1;
 	return 0;
 }
 
@@ -273,10 +247,6 @@ void diskdb_store (unsigned long host, netload_rec *rec,
 	
 	diskdb_setlck (rec);
 	fwrite (rec, (size_t) 640, 1, f);
-	diskdb_clrlck (rec);
-	fseek (f, 640 * index, SEEK_SET);
-	fwrite (rec, (size_t) 640, 1, f);
-	fseek (f, 0, SEEK_END);
 	fclose (f);
 }
 
