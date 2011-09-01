@@ -388,11 +388,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 			{
 				rec_set_status (rec, info->status);
 				rec_set_oflags (rec, info->oflags);
-				if (info->oflags != oflags)
-				{
-					diskdb_setcurrent (rhost, rec);
-				}
-				
+				diskdb_setcurrent (rhost, rec);
 			}
 			
 			sprintf (str, "Recv packet size=%i "
