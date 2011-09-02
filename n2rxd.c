@@ -314,14 +314,14 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 				{
 					sprintf (str, "Service %s started", get_servicename(i));
 					hostlog (rhost, status, status, oflags, str);
-					statuslog (rhost, str);
+					/*statuslog (rhost, str);*/
 				}
 				else if ( ((oldservices & (1<<i)) != 0) && 
 						  ((services & (1<<i)) == 0) )
 				{
 					sprintf (str, "Service %s stopped", get_servicename(i));
 					hostlog (rhost, status, status, oflags, str);
-					statuslog (rhost, str);
+					/*statuslog (rhost, str);*/
 				}
 			}
 		}
@@ -549,6 +549,10 @@ void reaper_thread (void *param)
 					acked = find_acked (ccrsr->addr);
 					if (acked && (acked->acked_stale_or_dead))
 					{
+						if (! (ccrsr->oflags & (1<<OFLAG_ACKED)))
+						{
+							errorlog (ccrsr->addr, "STALE/DEAD state acked");
+						}
 						ccrsr->status |= (1<<(FLAG_OTHER+4));
 						ccrsr->oflags = 1<<OFLAG_ACKED;
 						rec_set_status (rec, ccrsr->status);;
@@ -1265,6 +1269,7 @@ void populate_cache (hcache *cache)
 			{
 				hcache_setlast (cache, addr, 0);
 				hcache_setstatus (cache, addr, rec_get_status (rec));
+				hcache_setoflags (cache, addr, rec_get_oflags (rec));
 				free (rec);
 				rec = NULL;
 			}
