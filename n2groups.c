@@ -85,6 +85,10 @@ int main (int argc, char *argv[])
 				"Loss  Net In/    Out     i/o\n");
 				//                    Kb/s   "
 	}
+	else if (asjson)
+	{
+		printf ("{");
+	}
 	
 	fsumm = fopen ("/var/state/n2/current/summary", "r");
 	if (! fsumm)
@@ -330,5 +334,6 @@ int main (int argc, char *argv[])
 	{
 		printf ("</nl.madscience.svc.n2.groups>\n");
 	}
+	if (asjson) printf ("}\n");
 	exit(0);
 }

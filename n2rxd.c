@@ -550,7 +550,7 @@ void reaper_thread (void *param)
 					if (acked && (acked->acked_stale_or_dead))
 					{
 						ccrsr->status |= (1<<(FLAG_OTHER+4));
-						ccrsr->oflags |= (1<<OFLAG_ACKED);
+						ccrsr->oflags = 1<<OFLAG_ACKED;
 						rec_set_status (rec, ccrsr->status);;
 						rec_set_oflags (rec, 1<<OFLAG_ACKED);
 					}
