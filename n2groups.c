@@ -44,7 +44,10 @@ int main (int argc, char *argv[])
 	int rtt, count;
 	int asxml;
 	int ascsv;
+	int asjson=0;
 	int op;
+	int firstmember=0;
+	int firstgroup=1;
 	char outline[256];
 	char addrbuf[32];
 	const char *groupname = NULL;
@@ -56,12 +59,13 @@ int main (int argc, char *argv[])
 	asxml = 0;
 	ascsv = 1;
 	
-	while ((op = getopt (argc, argv, "xfg:")) > 0)
+	while ((op = getopt (argc, argv, "xfjg:")) > 0)
 	{
 		switch (op)
 		{
-			case 'x': asxml=1; ascsv=0; break;
-			case 'f': ascsv=0; asxml=0; break;
+			case 'x': asjson=0; asxml=1; ascsv=0; break;
+			case 'f': asjson=0; ascsv=0; asxml=0; break;
+			case 'j': asxml=0; ascsv=0; asjson=1; break;
 			case 'g': groupname=optarg; break;
 		}
 	}
@@ -75,7 +79,7 @@ int main (int argc, char *argv[])
 		printf ("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 		printf ("<nl.madscience.svc.n2.groups>\n");
 	}
-	else if (! ascsv)
+	else if ((!ascsv)&&(!asjson))
 	{
 		printf ("Host              Status   Load      CPU    RTT   "
 				"Loss  Net In/    Out     i/o\n");
@@ -121,6 +125,14 @@ int main (int argc, char *argv[])
 			{
 				if (ascsv) printf ("%s:", grp->name);
 			}
+			else if (asjson)
+			{
+				if (firstgroup) firstgroup=0;
+				else printf (",");
+				printf ("\"%s\":{\"description\":\"%s\",\"members\":{",
+						grp->name, grp->description);
+				firstmember=1;
+			}
 			else if (asxml)
 			{
 				printf ("  <group name=\"%s\" description=\"%s\">\n",
@@ -140,6 +152,12 @@ int main (int argc, char *argv[])
 					{
 						printf ("      <member ip=\"%s\"", addrbuf);
 					}
+					else if (asjson)
+					{
+						if (firstmember) firstmember=0;
+						else printf (",");
+						printf ("\"%s\":{", addrbuf);
+					}
 					else if (ascsv)
 					{
 						printf ("%s%s", first ? "" : " ", addrbuf);
@@ -155,7 +173,7 @@ int main (int argc, char *argv[])
 							isacked = 1;
 						}
 						else isacked = 0;
-						if (asxml)
+						if (asxml || asjson)
 						{
 							// FIXME@ koert: potential stack overflow here if error flags are added
 							// or get longer names
@@ -175,17 +193,31 @@ int main (int argc, char *argv[])
 							if( CHKOFLAG(info->oflags,OFLAG_DECODINGERR) ) strcat(flags,", decodingerr");
 							// if( CHKSTATUSFLAG(info->status,FLAG_OTHER) ) strcat(flags,", other");
 
-							printf (" netin=\"%u\" netout=\"%u\" "
-									"rtt=\"%.1f\" cpu=\"%.2f\" "
-									"loadavg=\"%.2f\" status=\"%s\" "
-									"diskio=\"%u\" flags=\"%s\" ",
-									info->netin, info->netout,
-									((double) info->ping10) / 10.0,
-									((double) info->cpu) / 2.56,
-									((double) info->load1) / 100.0,
-									isacked ? "ACKED" : STR_STATUS[info->status & 15],
-									info->diskio,
-									*flags ? flags+2 : flags );
+							if (asxml)
+							{
+								printf (" netin=\"%u\" netout=\"%u\" "
+										"rtt=\"%.1f\" cpu=\"%.2f\" "
+										"loadavg=\"%.2f\" status=\"%s\" "
+										"diskio=\"%u\" flags=\"%s\" ",
+										info->netin, info->netout,
+										((double) info->ping10) / 10.0,
+										((double) info->cpu) / 2.56,
+										((double) info->load1) / 100.0,
+										isacked ? "ACKED" : STR_STATUS[info->status & 15],
+										info->diskio,
+										*flags ? flags+2 : flags );
+							}
+							else
+							{
+								printf ("\"netin\":%u,", info->netin);
+								printf ("\"netout\":%u,", info->netout);
+								printf ("\"rtt\":%.1f,", ((double)info->ping10)/10.0);
+								printf ("\"cpu\":%.2f,",((double) info->cpu)/2.56);
+								printf ("\"loadavg\":%.2f,",((double)info->load1)/100.0);
+								printf ("\"status\":\"%s\",",isacked?"ACKED":STR_STATUS[info->status&15]);
+								printf ("\"diskio\":%u,",info->diskio);
+								printf ("\"flags\":\"%s\"", *flags?flags+2:flags);
+							}
 						}
 						else if (! ascsv)
 						{
@@ -249,11 +281,23 @@ int main (int argc, char *argv[])
 						free (rec);
 					}
 					if (asxml) printf ("/>\n");
+					if (asjson) printf ("}");
 					++count;
 				}
 				currentnode = currentnode->next;
 			}
-			if (! asxml)
+			if (asjson)
+			{
+				printf ("},\"summary\":{");
+				printf ("\"netin\":%u,", netin);
+				printf ("\"netout\":%u,",netout);
+				printf ("\"rtt\":%.1f,",((double)rtt/(10.0*((double)count))));
+				printf ("\"counts.warning\":%i,", numwarn);
+				printf ("\"counts.alert\":%i,", numalert);
+				printf ("\"counts.critical\":%i", numcrit);
+				printf ("}}");
+			}
+			else if (! asxml)
 			{
 				if (! count) count=1;
 				if (ascsv)

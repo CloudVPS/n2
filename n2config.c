@@ -518,7 +518,6 @@ void load_ackedlist (void)
 
 				#define chk_oflag(flag,str) { \
 						if(strcmp(arg->argv[i],str) ==0) { \
-							printf ("ack %s = %i\n", str, 1<<flag); \
 							newnode->acked_oflags |= (1 << flag); \
 							continue; \
 						} \
@@ -526,7 +525,6 @@ void load_ackedlist (void)
 				
 				for (i=2; i<arg->argc; ++i)
 				{
-					printf ("checking %s\n", arg->argv[i]);
 					chk_flag(FLAG_RTT, "rtt");
 					chk_flag(FLAG_LOSS, "loss");
 					chk_flag(FLAG_LOAD, "load");
