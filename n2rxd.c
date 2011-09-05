@@ -558,6 +558,7 @@ void reaper_thread (void *param)
 						rec_set_status (rec, ccrsr->status);;
 						rec_set_oflags (rec, 1<<OFLAG_ACKED);
 					}
+
 					/* Store the updated data back on disk */
 					diskdb_setcurrent (ccrsr->addr, rec);
 					free (rec);
@@ -1022,6 +1023,9 @@ int check_alert_status (unsigned long rhost,
 			}
 		}
 	}
+
+	hcnode->status = info->status;
+	hcnode->oflags = info->oflags;
 	
 	/* Determine if we changed the status */
 	if (RDSTATUS(info->status) != RDSTATUS(oldstatus))
