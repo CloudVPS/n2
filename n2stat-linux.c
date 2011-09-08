@@ -79,6 +79,7 @@ void gather_init (void)
 	GLOB.net_in = 0;
 	GLOB.net_out = 0;
 	GLOB.io_blk = 0;
+	GLOB.io_wait = 0;
 	GLOB.lastrun = time (NULL);
 	
 	procrun_init (&GLOB.procs);
