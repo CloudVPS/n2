@@ -408,6 +408,19 @@ void gather_netinfo (netload_info *inf)
 	}
 }
 
+int diskdevice_size_in_gb (const char *devname)
+{
+	unsigned long long bytes = 0;
+	int fd;
+
+	fd = open (devname, O_RDONLY);
+	if (fd<0) return 0;
+
+	ioctl(fd, BLKGETSIZE64, &bytes);
+	close (fd);
+	return (bytes >> 30);
+}
+
 /* ------------------------------------------------------------------------- *\
  * FUNCTION volume_promille_used                                             *
  * -----------------------------                                             *
@@ -581,6 +594,7 @@ void gather_mounts_getmount (n2arglist *args, netload_info *inf,
 	const char *fstype;
 	int i;
 	unsigned short usage;
+	int sizegb;
 	int	nmounts;
 
 	fstype = args->argv[2];
@@ -589,6 +603,7 @@ void gather_mounts_getmount (n2arglist *args, netload_info *inf,
 	{
 		origindevice = args->argv[0];
 		mountpoint = args->argv[1];
+		sizegb = diskdevice_size_in_gb (origindevice);
 		usage = volume_promille_used (mountpoint);
 		if (usage == 1001) return;
 		
@@ -611,6 +626,7 @@ void gather_mounts_getmount (n2arglist *args, netload_info *inf,
 			tmnt.fstype[11] = 0;
 			
 			tmnt.usage = usage;
+			tmnt.size = sizegb;
 
 			if (usage < *lowusage)
 			{
@@ -637,6 +653,7 @@ void gather_mounts_getmount (n2arglist *args, netload_info *inf,
 				tmnt.fstype[11] = 0;
 				
 				tmnt.usage = usage;
+				tmnt.size = sizegb;
 
 				*lowusage = 1001;
 
