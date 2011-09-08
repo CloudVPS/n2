@@ -40,6 +40,7 @@ typedef struct
 	unsigned long long	net_in;
 	unsigned long long	net_out;
 	unsigned long long	io_blk;
+	unsigned long long  io_wait;
 	unsigned short 		ports[65536][3];
 	procrun				procs;
 } linuxgather_global;
@@ -113,6 +114,7 @@ void gather_io (netload_info *inf)
 	char buf[256];
 	unsigned long long totalblk = 0;
 	unsigned long long delta;
+	unsigned long long totalwait = 0;
 	
 	F = fopen ("/proc/diskstats", "r");
 	if (F)
@@ -166,6 +168,16 @@ void gather_io (netload_info *inf)
 			fclose (F);
 		}
 	}
+
+	F = fopen ("/proc/stat","r");
+	if (F)
+	{
+		fgets (buf, 255, F);
+		split = make_args (buf);
+		totalwait = atoll (split->argv[4]);
+		destroy_args (split);
+		fclose (F);
+	}
 	
 	delta = totalblk - GLOB.io_blk;
 	
@@ -179,7 +191,18 @@ void gather_io (netload_info *inf)
 	{
 		inf->diskio = 0;
 	}
+
+	delta = totalwait - GLOB.io_wait;
+
+	if (GLOB.io_wait)
+	{
+		/* delta is in 100Hz ticks, so this works out */
+		inf->iowait = delta / (ti - GLOB.lastrun);
+		if (inf->iowait > 100) inf->iowait = 100;
+	}
+
 	GLOB.io_blk = totalblk;
+	GLOB.io_wait = totalwait;
 	GLOB.lastrun = ti;
 }
 
