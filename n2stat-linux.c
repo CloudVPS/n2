@@ -34,7 +34,6 @@
 /* ------------------------------------------------------------------------- *\
  * Internal datatypes                                                        *
 \* ------------------------------------------------------------------------- */
-
 typedef struct
 {
 	time_t				lastrun;
@@ -48,7 +47,6 @@ typedef struct
 /* ------------------------------------------------------------------------- *\
  * Internal globals                                                          *
 \* ------------------------------------------------------------------------- */
-
 linuxgather_global GLOB;
 int KMEMTOTAL;
 
@@ -65,7 +63,6 @@ procrun *getprocs (void)
 /* ------------------------------------------------------------------------- *\
  * Internal function prototypes                                              *
 \* ------------------------------------------------------------------------- */
-
 int volume_promille_used (const char *);
 void gather_mounts_getmount (n2arglist *, netload_info *, unsigned short *, int *);
 
@@ -74,7 +71,6 @@ void gather_mounts_getmount (n2arglist *, netload_info *, unsigned short *, int 
  * ---------------------------                                               *
  * Initializes globals.                                                      *
 \* ------------------------------------------------------------------------- */
-
 void gather_init (void)
 {
 	FILE *F;
@@ -106,6 +102,9 @@ void gather_init (void)
 	}
 }
 
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION gather_io (info)                                                 *
+\* ------------------------------------------------------------------------- */
 void gather_io (netload_info *inf)
 {
 	n2arglist *split;
@@ -189,7 +188,6 @@ void gather_io (netload_info *inf)
  * -----------------------                                                   *
  * Fill in host operating system data.                                       *
 \* ------------------------------------------------------------------------- */
-
 void gather_hostdat (netload_info *inf)
 {
 	FILE *F;
@@ -201,14 +199,20 @@ void gather_hostdat (netload_info *inf)
 	inf->hosttime = time (NULL);
 	inf->ostype = MY_OSTYPE;
 	
-  uname(&unamebuf);
+	uname(&unamebuf);
 	inf->hwtype = HW_OTHER;
 	if (!strcmp(unamebuf.machine, "i386") || !strcmp(unamebuf.machine, "i686"))
-    inf->hwtype = HW_IA32;
-  else if (!strcmp(unamebuf.machine, "x86_64"))
-    inf->hwtype = HW_IA64;
-  else if (!strcmp(unamebuf.machine, "mips"))
-    inf->hwtype = HW_MIPS;
+	{
+	    inf->hwtype = HW_IA32;
+	}
+ 	else if (!strcmp(unamebuf.machine, "x86_64"))
+ 	{
+		inf->hwtype = HW_IA64;
+    }
+  	else if (!strcmp(unamebuf.machine, "mips"))
+  	{
+    	inf->hwtype = HW_MIPS;
+    }
 	
 	F = fopen ("/proc/uptime", "r");
 	if (F)
@@ -229,7 +233,6 @@ void gather_hostdat (netload_info *inf)
  * ---------------------------                                               *
  * Fill in the loadaverage data.                                             *
 \* ------------------------------------------------------------------------- */
-
 void gather_load (netload_info *inf)
 {
 	FILE 		*F;
@@ -267,7 +270,6 @@ void gather_load (netload_info *inf)
  * ------------------------------                                            *
  * Fill in memory/swap usage                                                 *
 \* ------------------------------------------------------------------------- */
-
 void gather_meminfo (netload_info *inf)
 {
 	FILE 		*F;
@@ -311,7 +313,6 @@ void gather_meminfo (netload_info *inf)
  * ------------------------------                                            *
  * Set network interface statistics                                          *
 \* ------------------------------------------------------------------------- */
-
 void gather_netinfo (netload_info *inf)
 {
 	FILE				*F;
@@ -391,7 +392,6 @@ void gather_netinfo (netload_info *inf)
  * Returns a number from 0 to 1000 depicting the 0.1% step usage of the      *
  * volume's filesystem. 1001 indicates an error condition.                   *
 \* ------------------------------------------------------------------------- */
-
 int volume_promille_used (const char *volume)
 {
 	struct statfs	sfs;
@@ -479,7 +479,6 @@ int volume_promille_used (const char *volume)
  * Get a list of mounts out of /proc/mtab and fill in the 4 most             *
  * heavily used volumes to return into the netload_info structure.           *
 \* ------------------------------------------------------------------------- */
-
 void gather_mounts (netload_info *inf)
 {
 	FILE			*F;
@@ -550,7 +549,6 @@ void gather_mounts (netload_info *inf)
  * structure if it has more priority than sitting entries or if there        *
  * is still an entry free.                                                   *
 \* ------------------------------------------------------------------------- */
-
 void gather_mounts_getmount (n2arglist *args, netload_info *inf,
 							 unsigned short *lowusage, int *lowusageidx)
 {
@@ -638,7 +636,6 @@ void gather_mounts_getmount (n2arglist *args, netload_info *inf,
  * Does a single sample run of the processes found inside /proc and tracks   *
  * their usage.                                                              *
 \* ------------------------------------------------------------------------- */
-
 void sample_tprocs (netload_info *inf)
 {
 	struct dirent	*de;
@@ -783,7 +780,6 @@ void sample_tprocs (netload_info *inf)
  * Internal subroutine to insert a top entry into a specific slot of the     *
  * tprocs array, moving other entries to the bottom.                         *
 \* ------------------------------------------------------------------------- */
-
 void make_top_hole (netload_info *inf, int pos)
 {
 	int tailsz;
@@ -804,7 +800,6 @@ void make_top_hole (netload_info *inf, int pos)
  * Gathers the statistics from the tproc sample rounds and puts them into    *
  * the netload_info structure.                                               *
 \* ------------------------------------------------------------------------- */
-
 void gather_tprocs (netload_info *inf)
 {
 	int i;
@@ -901,7 +896,6 @@ void gather_tprocs (netload_info *inf)
  * Gets statistics of open tcp ports and their open/halfopen/closed          *
  * connection counts.                                                        *
 \* ------------------------------------------------------------------------- */
-
 void gather_ports (netload_info *inf)
 {
 	int lowidx;
@@ -1034,7 +1028,6 @@ void gather_ports (netload_info *inf)
  * -------------------------                                                 *
  * Returns the number of CPUs in the system.                                 *
 \* ------------------------------------------------------------------------- */
-
 int cpu_count (void)
 {
 	char buffer[256];
@@ -1066,7 +1059,6 @@ int cpu_count (void)
  * Goes over utmp* to check for logged in users and records their tty,       *
  * username and remote host.                                                 *
 \* ------------------------------------------------------------------------- */
-
 void gather_ttys (netload_info *inf)
 {
 	struct utmp *ut;
@@ -1096,7 +1088,6 @@ void gather_ttys (netload_info *inf)
  * Test code for the statistics gathering. #DEFINE UNIT_TEST during compile  *
  * and link to the necessary objects to create a test program.               *
 \* ------------------------------------------------------------------------- */
-
 #ifdef UNIT_TEST
 int main (int argc, char *argv[])
 {

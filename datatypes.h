@@ -142,6 +142,7 @@ typedef struct netload_mountinfo_struc
 	char				mountpoint[48];	/* the path of the mountpoint */
 	char				fstype[12];		/* the filesystem type */
 	unsigned short		usage;			/* filesystem usage percentage x10 */
+	unsigned short		size;			/* size in gigabytes */
 } netload_mountinfo;
 
 typedef struct netload_topentry_struc
@@ -220,6 +221,7 @@ typedef struct netload_info_struc
 	hwtype_t			 hwtype;
 	unsigned short		 load1; /* loadavg * 100 */
 	unsigned char		 cpu; /* cpu perc * 2.55 */
+	unsigned char		 iowait; /* iowait perc * 1.00 */
 	unsigned int		 diskio; /* disk io blk/s */
 	unsigned int		 services;
 	unsigned short		 nrun;

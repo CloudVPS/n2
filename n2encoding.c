@@ -201,7 +201,12 @@ netload_pkt *encode_pkt (netload_info *inf, const char *key)
 	pkt_print32 (pkt, inf->services);
 	pkt_print16 (pkt, encode_uptime (inf->uptime));
 	pkt_print24 (pkt, inf->hosttime & 0x00ffffff);
-	pkt_print8  (pkt, inf->nrun & 0xff);
+
+#ifdef N2_ENCODE_LEGACY_FORMAT
+	pkt_print8  (pkt, inf->nrun & 0x7f);
+#else
+	pkt_print8  (pkt, 0x80 | (info->iowait & 0x7f));
+#endif
 	pkt_print16 (pkt, inf->nproc);
 	
 	if (inf->kmemfree > 0x00ffffff) inf->kmemfree = 0x00ffffff;
@@ -214,12 +219,20 @@ netload_pkt *encode_pkt (netload_info *inf, const char *key)
 	
 	/* Add recorded mountpoints */
 	
+#ifdef N2_ENCODE_LEGACY_FORMAT
 	pkt_print8  (pkt, inf->nmounts);
+#else
+	pkt_print8	(pkt, 0x80 | (inf->nmounts & 0x7f));
+#endif
+
 	for (i=0; i<inf->nmounts; ++i)
 	{
 		pkt_prints  (pkt, inf->mounts[i].mountpoint, 32);
 		pkt_prints  (pkt, inf->mounts[i].fstype, 8);
 		pkt_print16 (pkt, inf->mounts[i].usage);
+#ifndef N2_ENCODE_LEGACY_FORMAT
+		pkt_print16 (pkt, inf->mounts[i].size);
+#endif
 	}
 	
 	/* Add recorded top entries */
@@ -450,7 +463,20 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 	DPRINTF ("uptime=<%i>\n", dst->uptime);
 	
 	dst->hosttime	= rec_read24 (rec);
-	dst->nrun		= rec_read8  (rec);
+
+	tmp 			= rec_read8  (rec);
+
+	if (tmp & 0x80)
+	{
+		dst->iowait = tmp & 0x7f;
+		dst->nrun = 1;
+	}
+	else
+	{
+		dst->iowait = 0;
+		dst->nrun = tmp;
+	}
+
 	dst->nproc		= rec_read16 (rec);
 	dst->kmemfree	= rec_read24 (rec);
 	dst->kswapfree	= rec_read24 (rec);
@@ -470,9 +496,10 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 		return 0;
 	}
 
-	dst->nmounts	= rec_read8  (rec);
+	tmp             = rec_read8  (rec);
+	dst->nmounts    = tmp & 0x7f;
 	
-	DPRINTF ("nmounts=<%i>\n");
+	DPRINTF ("nmounts=<%i>\n", dst->nmounts);
 	
 	if (dst->nmounts > 4)
 	{
@@ -488,6 +515,8 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 		(void) rec_reads  (rec, dst->mounts[row].mountpoint, 32);
 		(void) rec_reads  (rec, dst->mounts[row].fstype, 8);
 		dst->mounts[row].usage	= rec_read16 (rec);
+		if (tmp & 0x80) dst->mounts[row].size = rec_read16 (rec);
+		else dst->mounts[row].size = 0;
 	}
 	
 	if (rec->eof)
