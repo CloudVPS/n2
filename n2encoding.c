@@ -205,7 +205,7 @@ netload_pkt *encode_pkt (netload_info *inf, const char *key)
 #ifdef N2_ENCODE_LEGACY_FORMAT
 	pkt_print8  (pkt, inf->nrun & 0x7f);
 #else
-	pkt_print8  (pkt, 0x80 | (info->iowait & 0x7f));
+	pkt_print8  (pkt, 0x80 | (inf->iowait & 0x7f));
 #endif
 	pkt_print16 (pkt, inf->nproc);
 	
@@ -1623,7 +1623,7 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 	printf ("  <processcount running=\"%i\">%i</processcount>\n",
 			inf->nrun, inf->nproc);
 	
-	printf (" <iowait>%i</iowait>\n", info->iowait);
+	printf (" <iowait>%i</iowait>\n", inf->iowait);
 			
 	printf ("  <mbfreeram>%.2f</mbfreeram>\n",
 			((float)inf->kmemfree)/1024.0);
