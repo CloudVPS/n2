@@ -499,7 +499,7 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 	tmp             = rec_read8  (rec);
 	dst->nmounts    = tmp & 0x7f;
 	
-	DPRINTF ("nmounts=<%i>\n", dst->nmounts);
+	DPRINTF ("nmounts=<%i> tmp=<%i>\n", dst->nmounts, tmp);
 	
 	if (dst->nmounts > 4)
 	{
