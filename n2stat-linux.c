@@ -1168,7 +1168,7 @@ int main (int argc, char *argv[])
 
 		pkt = encode_pkt (&inf, "this-is-my-key");
 		i = validate_pkt (pkt, "this-is-my-key");
-		rec = encode_rec (pkt, time (NULL), ST_STARTUP_1, 1, 1);
+		rec = encode_rec (pkt, time (NULL), ST_STARTUP_1, 1, 0, 0);
 
 		dinf = decode_rec (rec);
 		pool_free (rec);
