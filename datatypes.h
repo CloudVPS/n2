@@ -75,6 +75,7 @@ enum /* bit-offsets of oflags when matching FLAG_OTHER */
 	OFLAG_DISKIO = 5,
 	OFLAG_DISKSPACE = 6,
 	OFLAG_DECODINGERR = 7,
+	OFLAG_IOWAIT = 8,
 	OFLAG_ACKED = 31
 };
 

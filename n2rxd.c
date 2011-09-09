@@ -929,6 +929,7 @@ int check_alert_status (unsigned long rhost,
 	ACLHANDLE_OFLAG(netin,over,info->netin,OFLAG_NETIN);
 	ACLHANDLE_OFLAG(netout,over,info->netout,OFLAG_NETOUT);
 	ACLHANDLE_OFLAG(diskio,over,info->diskio,OFLAG_DISKIO);
+	ACLHANDLE_OFLAG(iowait,over,info->iowait,OFLAG_IOWAIT);
 
 	#ifdef DEBUG
 		printf ("diskio %i warning %i alert %i\n",
