@@ -48,6 +48,15 @@ typedef struct
 	procrun				procs;
 } linuxgather_global;
 
+static const char *afterlast (const char *in, char match)
+{
+	const char *res = in;
+	const char *t;
+
+	while (t = strchr (res, match)) res = t+1;
+	return res;
+}
+
 /* ------------------------------------------------------------------------- *\
  * Internal globals                                                          *
 \* ------------------------------------------------------------------------- */
@@ -418,7 +427,7 @@ void gather_netinfo (netload_info *inf)
 	}
 }
 
-int diskdevice_size_in_gb (const char *devname)
+/*int diskdevice_size_in_gb (const char *devname)
 {
 	unsigned long long bytes = 0;
 	int fd;
@@ -429,6 +438,51 @@ int diskdevice_size_in_gb (const char *devname)
 	ioctl(fd, BLKGETSIZE64, &bytes);
 	close (fd);
 	return (bytes >> 30);
+}*/
+
+int diskdevice_size_in_gb (const char *devname)
+{
+	struct stat 		 st;
+	n2arglist 			*args;
+	int         		 iminor, imajor;
+	FILE 				*F;
+	char        		 buf[256];
+	unsigned long long 	 sizebytes;
+
+	if (stat (devname, &st)) return 0;
+	iminor = minor (st.st_rdev);
+	imajor = major (st.st_rdev);
+
+	F = fopen ("/proc/partitions","r");
+	if (!F) return 0;
+
+	while (! feof (F))
+	{
+		fgets (buf, 255, F);
+		buf[255] = 0;
+		if (*buf) buf[strlen(buf)-1] = 0;
+		if (! (*buf)) continue;
+
+		args = make_args (buf);
+		if (args->argc < 3)
+		{
+			destroy_args (args);
+			continue;
+		}
+
+		if (imajor == atoi (args->argv[0]))
+		{
+			if (iminor == atoi (args->argv[1]))
+			{
+				sizebytes = atoll (args->argv[2]);
+				destroy_args (args);
+				return sizebytes/(1024*1024);
+			}
+		}
+		destroy_args (args);
+	}
+	fclose (F);
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- *\
@@ -1156,6 +1210,8 @@ int main (int argc, char *argv[])
 	
 	gather_netinfo (&inf);
 	gather_meminfo (&inf);
+
+	gather_mounts (&inf);
 	
 	for (ii=0; ii<4; ++ii)
 	{
