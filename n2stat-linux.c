@@ -24,6 +24,8 @@
 #include <utmp.h>
 #include <syslog.h>
 #include <sys/utsname.h>
+#include <sys/mount.h>
+#include <fcntl.h>
 
 #ifdef DEBUG
   #define dprintf printf
