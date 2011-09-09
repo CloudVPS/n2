@@ -198,6 +198,8 @@ n2command CONF_MONITOR_GROUP[] = {
 	{"sockstate-alert", NULL, conf_monitor_sock_alert},
 	{"cpu-warning", NULL, conf_monitor_cpu_warning},
 	{"cpu-alert", NULL, conf_monitor_cpu_alert},
+	{"iowait-warning", NULL, conf_monitor_iowait_warning},
+	{"iowait-alert", NULL, conf_monitor_iowait_alert},
 	{"ram-warning", NULL, conf_monitor_ram_warning},
 	{"ram-alert", NULL, conf_monitor_ram_alert},
 	{"swap-warning", NULL, conf_monitor_swap_warning},
@@ -1089,6 +1091,30 @@ void conf_monitor_cpu_alert (n2arglist *arg)
 	if (arg->argc > 1)
 	{
 		curacl->cpu_alert = (atoi (arg->argv[1]) * 255) / 100;
+	}
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION conf_monitor_iowait_warning (args)                               *
+\* ------------------------------------------------------------------------- */
+void conf_monitor_iowait_warning (n2arglist *arg)
+{
+	double d;
+	if (arg->argc > 1)
+	{
+		curacl->iowait_warning = atoi (arg->argv[1]);
+	}
+}
+
+/* ------------------------------------------------------------------------- *\
+ * FUNCTION conf_monitor_iowait_alert (args)                                 *
+\* ------------------------------------------------------------------------- */
+void conf_monitor_iowait_alert (n2arglist *arg)
+{
+	double d;
+	if (arg->argc > 1)
+	{
+		curacl->cpu_alert = atoi (arg->argv[1]);
 	}
 }
 

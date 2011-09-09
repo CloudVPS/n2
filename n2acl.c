@@ -33,6 +33,8 @@ void acl_init (void)
 	ACL->sockstate_alert = DEF_SOCKSTATE_ALERT;
 	ACL->cpu_warning = DEF_CPU_WARNING;
 	ACL->cpu_alert = DEF_CPU_ALERT;
+	ACL->iowait_warning = DEF_IOWAIT_WARNING;
+	ACL->iowait_alert = DEF_IOWAIT_ALERT;
 	ACL->ram_warning = DEF_RAM_WARNING;
 	ACL->ram_alert = DEF_RAM_ALERT;
 	ACL->swap_warning = DEF_SWAP_WARNING;

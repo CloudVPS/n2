@@ -25,6 +25,8 @@ extern n2alias *ALIASES;
 #define DEF_SOCKSTATE_ALERT		 400
 #define DEF_CPU_WARNING			 200 /* 78 % */
 #define DEF_CPU_ALERT			 240 /* 93 % */
+#define DEF_IOWAIT_WARNING        60 /* 60 % */
+#define DEF_IOWAIT_ALERT          85 /* 85 % */
 #define DEF_RAM_WARNING			4096 /* 4MB */
 #define DEF_RAM_ALERT			1024 /* 1MB */
 #define DEF_SWAP_WARNING		4096 /* 4MB */
@@ -67,6 +69,7 @@ typedef struct acl_struc
 	unsigned short		 loss_warning, loss_alert;
 	unsigned short		 sockstate_warning, sockstate_alert;
 	unsigned short		 cpu_warning, cpu_alert;
+	unsigned short		 iowait_warning, iowait_alert;
 	unsigned int		 diskio_warning, diskio_alert;
 	unsigned int		 ram_warning, ram_alert;
 	unsigned int		 swap_warning, swap_alert;
@@ -181,6 +184,8 @@ DEFACLPROP (sockstate_warning,unsigned short);
 DEFACLPROP (sockstate_alert,unsigned short);
 DEFACLPROP (cpu_warning,unsigned short);
 DEFACLPROP (cpu_alert,unsigned short);
+DEFACLPROP (iowait_warning,unsigned short);
+DEFACLPROP (iowait_alert,unsigned short);
 DEFACLPROP (diskio_warning,unsigned int);
 DEFACLPROP (diskio_alert,unsigned int);
 DEFACLPROP (ram_warning,unsigned int);
