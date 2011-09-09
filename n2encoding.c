@@ -1432,6 +1432,7 @@ void print_info (netload_info *inf, unsigned int addr)
 			 (double) inf->load1 / 100.0,
 			 (double) inf->cpu / 2.55,
 			 CPUBAR[inf->cpu >> 4]);
+	printf ("I/O wait........: %i %%", inf->iowait);
 	printf ("Free RAM/Swap...: %.2f MB / %.2f MB\n",
 			((float)inf->kmemfree)/1024.0,
 			((float)inf->kswapfree)/1024.0);
@@ -1447,8 +1448,9 @@ void print_info (netload_info *inf, unsigned int addr)
 	{
 		if (inf->mounts[i].usage < 1001)
 		{
-			printf ("%8s  %6.02f %%  %s\n", inf->mounts[i].fstype,
+			printf ("%8s  %6.02f %%  %i GB  %s\n", inf->mounts[i].fstype,
 										 (double) inf->mounts[i].usage / 10.0,
+										 inf->mounts[i].size,
 										 inf->mounts[i].mountpoint);
 		}
 		else
@@ -1620,6 +1622,8 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 			
 	printf ("  <processcount running=\"%i\">%i</processcount>\n",
 			inf->nrun, inf->nproc);
+	
+	printf (" <iowait>%i</iowait>\n", info->iowait);
 			
 	printf ("  <mbfreeram>%.2f</mbfreeram>\n",
 			((float)inf->kmemfree)/1024.0);
@@ -1641,16 +1645,18 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 		{
 			if (inf->mounts[i].usage > 1000)
 			{
-				printf ("    <mount fstype=\"%s\" usage=\"100\" error=\"1\">%s"
-						"</mount>\n",
+				printf ("    <mount fstype=\"%s\" size=\"%i\" usage=\"100\""
+						" error=\"1\">%s</mount>\n",
 						inf->mounts[i].fstype,
+						inf->mounts[i].size,
 						inf->mounts[i].mountpoint);
 			}
 			else
 			{
-				printf ("    <mount fstype=\"%s\" usage=\"%.02f\">%s"
-						"</mount>\n",
+				printf ("    <mount fstype=\"%s\" size=\"%i\" "
+						"usage=\"%.02f\">%s</mount>\n"
 						inf->mounts[i].fstype,
+						inf->mounts[i].size,
 						(double) inf->mounts[i].usage / 10.0,
 						inf->mounts[i].mountpoint);
 			}
