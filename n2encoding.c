@@ -1654,7 +1654,7 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 			else
 			{
 				printf ("    <mount fstype=\"%s\" size=\"%i\" "
-						"usage=\"%.02f\">%s</mount>\n"
+						"usage=\"%.02f\">%s</mount>\n",
 						inf->mounts[i].fstype,
 						inf->mounts[i].size,
 						(double) inf->mounts[i].usage / 10.0,
