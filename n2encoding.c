@@ -1432,7 +1432,7 @@ void print_info (netload_info *inf, unsigned int addr)
 			 (double) inf->load1 / 100.0,
 			 (double) inf->cpu / 2.55,
 			 CPUBAR[inf->cpu >> 4]);
-	printf ("I/O wait........: %i %%", inf->iowait);
+	printf ("I/O wait........: %i %%\n", inf->iowait);
 	printf ("Free RAM/Swap...: %.2f MB / %.2f MB\n",
 			((float)inf->kmemfree)/1024.0,
 			((float)inf->kswapfree)/1024.0);
