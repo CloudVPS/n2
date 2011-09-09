@@ -39,6 +39,7 @@
 typedef struct
 {
 	time_t				lastrun;
+	unsigned long long  total_cpu;
 	unsigned long long	net_in;
 	unsigned long long	net_out;
 	unsigned long long	io_blk;
@@ -82,6 +83,7 @@ void gather_init (void)
 	GLOB.net_out = 0;
 	GLOB.io_blk = 0;
 	GLOB.io_wait = 0;
+	GLOB.total_cpu = 0;
 	GLOB.lastrun = time (NULL);
 	
 	procrun_init (&GLOB.procs);
@@ -117,6 +119,8 @@ void gather_io (netload_info *inf)
 	char buf[256];
 	unsigned long long totalblk = 0;
 	unsigned long long delta;
+	unsigned long long cpudelta;
+	unsigned long long totalcpu;
 	unsigned long long totalwait = 0;
 	
 	F = fopen ("/proc/diskstats", "r");
@@ -177,7 +181,9 @@ void gather_io (netload_info *inf)
 	{
 		fgets (buf, 255, F);
 		split = make_args (buf);
-		totalwait = atoll (split->argv[4]);
+		totalwait = atoll (split->argv[5]);
+		totalcpu = atoll (split->argv[1]) + atoll (split->argv[2]) +
+				   atoll (split->argv[3]) + atoll (split->argv[4]);
 		destroy_args (split);
 		fclose (F);
 	}
@@ -196,16 +202,18 @@ void gather_io (netload_info *inf)
 	}
 
 	delta = totalwait - GLOB.io_wait;
+	cpudelta = totalcpu - GLOB.total_cpu;
 
 	if (GLOB.io_wait)
 	{
 		/* delta is in 100Hz ticks, so this works out */
-		inf->iowait = delta / (ti - GLOB.lastrun);
+		inf->iowait = (100*delta) / cpudelta;
 		if (inf->iowait > 100) inf->iowait = 100;
 	}
 
 	GLOB.io_blk = totalblk;
 	GLOB.io_wait = totalwait;
+	GLOB.total_cpu = totalcpu;
 	GLOB.lastrun = ti;
 }
 
@@ -1144,6 +1152,7 @@ int main (int argc, char *argv[])
 	
 	load_config("/etc/netload/client.cf");
 	gather_init();
+	init_netload_info (&inf);
 	
 	gather_netinfo (&inf);
 	gather_meminfo (&inf);
@@ -1166,7 +1175,13 @@ int main (int argc, char *argv[])
 		gather_ports (&inf);
 		gather_ttys (&inf);
 
+		/*print_info (&inf, 0x7f000001);*/
+
 		pkt = encode_pkt (&inf, "this-is-my-key");
+		i = open ("packet.out", O_RDWR|O_CREAT);
+		write (i, pkt, pkt->pos);
+		close (i);
+
 		i = validate_pkt (pkt, "this-is-my-key");
 		rec = encode_rec (pkt, time (NULL), ST_STARTUP_1, 1, 0, 0);
 

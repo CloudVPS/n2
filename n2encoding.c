@@ -518,6 +518,8 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 		if (tmp & 0x80) dst->mounts[row].size = rec_read16 (rec);
 		else dst->mounts[row].size = 0;
 	}
+
+	DPRINTF ("end of mounts\n");
 	
 	if (rec->eof)
 	{
@@ -527,7 +529,7 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 	
 	dst->ntop = rec_read8  (rec);
 	
-	DPRINTF ("ntop=<%i>\n");
+	DPRINTF ("ntop=<%i>\n", dst->ntop);
 	
 	if (dst->ntop > NR_TPROCS)
 	{
@@ -611,12 +613,14 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 	if ((rec->pos - rec->rpos) > 1) /* vhost records? */
 	{
 		dst->nhttp = rec_read8 (rec);
+		DPRINTF ("nhttp %i\n", dst->nhttp);
 		if (dst->nhttp > NR_HTTP) dst->nhttp = NR_HTTP;
 		
 		if (dst->nhttp)
 		{
 			for (row=0; (! rec->eof) && (row < dst->nhttp); ++row)
 			{
+				DPRINTF ("reading http row %i\n", row);
 				rec_reads (rec, dst->http[row].vhost, 48);
 				dst->http[row].count = rec_read16 (rec);
 			}
