@@ -16,6 +16,7 @@ void parse_cmd (const char *);
 void conf_ip_address (n2arglist *);
 void conf_log_type (n2arglist *);
 void conf_log_file (n2arglist *);
+void conf_authlog_file (n2arglist *);
 void conf_user (n2arglist *);
 void conf_group (n2arglist *);
 void conf_hostname (n2arglist *);
