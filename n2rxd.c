@@ -995,7 +995,7 @@ int check_alert_status (unsigned long rhost,
 
 	if (hadwarning || hadalert)
 	{
-		if (((RDFLAGS(info->status) & 7) == 0) && (info->oflags == 0))
+		if ((RDFLAGS(info->status) == 0) && (info->oflags == 0))
 		{
 			hadwarning = hadalert = 0;
 		}
