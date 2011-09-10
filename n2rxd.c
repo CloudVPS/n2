@@ -988,6 +988,14 @@ int check_alert_status (unsigned long rhost,
 		}
 	}
 
+	if (hadwarning || hadalert)
+	{
+		if ((RDFLAGS(info->status) == 0) && (info->oflags == 0))
+		{
+			hadwarning = hadalert = 0;
+		}
+	}
+
 	if ((hadwarning == 0) && (hadalert == 0))
 	{
 		if (hcnode->alertlevel > 12)
