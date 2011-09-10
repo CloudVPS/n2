@@ -92,6 +92,7 @@ typedef struct n2config
 	
 	/* Common parameters */
 	char				*logfile;
+	char				*authlogfile;
 	char				 user[16];
 	char				 group[16];
 	char				 hostname[32];

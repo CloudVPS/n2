@@ -102,6 +102,7 @@ n2command CONF_LOG_TYPE[] = {
 n2command CONF_LOG[] = {
 	{"type", CONF_LOG_TYPE, NULL},
 	{"file", NULL, conf_log_file},
+	{"auth-file", NULL, conf_authlog_file},
 	{NULL, NULL, NULL}
 };
 
@@ -569,6 +570,7 @@ void load_config (const char *fname)
 	{
 		pool_free (CONF.logfile);
 		CONF.logfile = NULL;
+		pool_free (CONF.authlogfile);
 		crsr = CONF.servers;
 		while (crsr)
 		{
@@ -580,7 +582,8 @@ void load_config (const char *fname)
 		}
 		CONF.servers = NULL;
 	}
-	CONF.logfile = pool_strdup ("/var/log/n2/n2.log");
+	CONF.logfile = pool_strdup ("/var/log/n2/n2rxd.log");
+	CONF.authlogfile = pool_strdup ("/var/log/n2/n2rxd-auth.log")
 	CONF.log = LOG_NONE;
 	CONF.listenaddr = 0;
 	CONF.listenport = 444;
@@ -707,6 +710,21 @@ void conf_log_file (n2arglist *arg)
 	{
 		fprintf (stderr, "%% Syntax error in configuration file "
 						 "<log file> statement\n");
+		exit (1);
+	}
+}
+
+void conf_authlog_file (n2arglist *arg)
+{
+	if (arg->argc > 2)
+	{
+		if (CONF.authlogfile) pool_free (CONF.authlogfile);
+		CONF.authlogfile = pool_strdup (arg->argv[2]);
+	}
+	else
+	{
+		fprintf (stderr, "%% Syntax error in configuration file "
+						 "<log auth-file> statement\n");
 		exit (1);
 	}
 }

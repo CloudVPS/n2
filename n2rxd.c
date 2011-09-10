@@ -60,6 +60,7 @@ typedef struct netload_cleanup_struc
 typedef struct netload_logmeta_struc
 {
 	FILE *f;
+	FILE *fauth;
 	pthread_mutexattr_t attr;
 	pthread_mutex_t mutex;
 } netload_logmeta;
@@ -113,10 +114,19 @@ void log_init (void)
 	if (CONF.log != LOG_NONE)
 	{
 		LOG.f = fopen (CONF.logfile, "a");
+		if (strcmp (CONF.authlogfile, CONF.logfile) == 0)
+		{
+			LOG.fauth = LOG.f;
+		}
+		else
+		{
+			LOG.fauth = fopen (CONF.authlogfile, "a");
+		}
 	}
 	else
 	{
 		LOG.f = NULL;
+		LOG.fauth = NULL;
 	}
 	
 	pthread_mutexattr_init (&LOG.attr);
@@ -394,12 +404,6 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 				rec_set_oflags (rec, info->oflags);
 				diskdb_setcurrent (rhost, rec);
 			}
-			
-			sprintf (str, "Recv packet size=%i "
-						  "status=%s",
-						  rec->pos,
-						  STR_STATUS[info->status & 15]);
-			eventlog (rhost, str);
 		}
 		else /* validated */
 		{
@@ -431,7 +435,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 					 "%u < %u",
 					 hosttime,
 					 hcache_getlast (cache, rhost));
-			errorlog (rhost, str);
+			authlog (rhost, str);
 		}
 	}
 }
@@ -761,12 +765,12 @@ int main (int argc, char *argv[])
 				}
 				else /* validated */
 				{
-					errorlog (rhost, "Authentication error on packet");
+					authlog (rhost, "Authentication error on packet");
 				}
 			}
 			else /* cacl */
 			{
-				errorlog (rhost, "Received message from unconfigured host");
+				authlog (rhost, "Received message from unconfigured host");
 			}
 		}
 		else /* psize > 25 */
@@ -944,10 +948,11 @@ int check_alert_status (unsigned long rhost,
 	#endif
 
 	/* Be more lenient about CPU, basically don't recognize it as
-	   an ALERT event ever */
+	   an ALERT event ever, but count it as a heavier warning */
 	if (acl_isover_cpu_alert (cacl,info->cpu))
 	{
 		SETSTATUSFLAG(info->status,FLAG_LOAD);
+		hadwarning++;
 		hadwarning++;
 	}
 	else if (acl_isover_cpu_warning (cacl,info->cpu))
@@ -994,7 +999,8 @@ int check_alert_status (unsigned long rhost,
 	{
 		if (hadalert > 1) maxlevel = 50;
 		else if (hadalert > 0) maxlevel = 35;
-		else maxlevel = 20;
+		else if (hadwarning > 1) maxlevel = 20;
+		else maxlevel = 10;
 		
 		if (hcnode->alertlevel < maxlevel)
 		{
@@ -1065,6 +1071,31 @@ void systemlog (const char *fmt, ...)
 	fprintf (LOG.f, "%%SYS%% %s %s\n", tbuf, buffer);
 	fflush (LOG.f);
 	pthread_mutex_unlock (&LOG.mutex);
+}
+
+void authlog (unsigned int host, const char *crime)
+{
+	char tbuf[32];
+	time_t t;
+
+	/* Bail if the logfile is not open */
+	if (! LOG.f) return;
+
+	/* Only at the right loglevels */
+	if ((CONF.log == LOG_MALFORMED) || (CONF.log == LOG_ALL))
+	{
+		/* Format the date string */
+		t = time (NULL);
+		ctime_r (&t, tbuf);
+		tbuf[24] = 0;
+	
+		pthread_mutex_lock (&LOG.mutex);
+		fprintf (LOG.fauth, "%%ERR%% %s %i.%i.%i.%i: %s\n", tbuf,
+			     BYTE(host,3), BYTE(host,2), BYTE(host,1), BYTE(host,0),
+			     crime);
+		fflush (LOG.fauth);
+		pthread_mutex_unlock (&LOG.mutex);
+	}
 }
 
 /* ------------------------------------------------------------------------- *\
