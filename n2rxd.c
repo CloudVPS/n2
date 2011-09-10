@@ -988,9 +988,14 @@ int check_alert_status (unsigned long rhost,
 		}
 	}
 
+	if (CHKSTATUSFLAG(info->status,FLAG_OTHER) && (info->oflags == 0))
+	{
+		CLRSTATUSFLAG(info->status,FLAG_OTHER);
+	}
+
 	if (hadwarning || hadalert)
 	{
-		if ((RDFLAGS(info->status) == 0) && (info->oflags == 0))
+		if (((RDFLAGS(info->status) & 7) == 0) && (info->oflags == 0))
 		{
 			hadwarning = hadalert = 0;
 		}
