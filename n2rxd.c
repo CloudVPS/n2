@@ -161,9 +161,9 @@ void udp_receive_thread (void *param)
 			backlog = QUEUE.wpos - QUEUE.rpos;
 			if (backlog < 0) backlog += 4096;
 			
-			if (backlog > 128)
+			if (backlog > 256)
 			{
-				if (! (errcnt & 31))
+				if (! (errcnt & 63))
 				{
 					systemlog ("UDP receiver backlog: %i", backlog);
 				}
