@@ -306,7 +306,7 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 						 uptime,
 						 hcache_getuptime (cache, rhost));
 				
-				statuslog (rhost, str);
+				authlog (rhost, str);
 				hostlog (rhost, status, status, oflags, str);
 			}
 		}
