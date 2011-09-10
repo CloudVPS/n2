@@ -405,6 +405,12 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 				rec_set_oflags (rec, info->oflags);
 				diskdb_setcurrent (rhost, rec);
 			}
+
+			sprintf (str, "Recv packet size=%i "
+					      "status=%s",
+					      rec->pos,
+					      STR_STATUS[info->status & 15]);
+			eventlog (rhost, str);
 		}
 		else /* validated */
 		{
