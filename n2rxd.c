@@ -76,6 +76,7 @@ int				 check_alert_status (unsigned long, netload_info *,
 void			 systemlog (const char *, ...);
 void			 statuslog (unsigned int, const char *, ...);
 void			 errorlog (unsigned int, const char *);
+void			 authlog (unsigned int, const char *);
 void			 eventlog (unsigned int, const char *);
 void			 handle_status_change (unsigned long, status_t, status_t);
 void			 udp_receive_thread (void *param);
