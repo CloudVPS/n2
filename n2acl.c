@@ -293,6 +293,8 @@ acl *acl_create (unsigned long addr, unsigned long netmask)
 	res->sockstate_alert	= 0xffff;
 	res->cpu_warning		= 0xffff;
 	res->cpu_alert			= 0xffff;
+	res->iowait_warning     = 0xffff;
+	res->iowait_alert       = 0xffff;
 	res->diskio_warning		= 0xffffffff;
 	res->diskio_alert		= 0xffffffff;
 	res->ram_warning		= 0xffffffff;
