@@ -47,6 +47,8 @@ void conf_monitor_netout_warning (n2arglist *);
 void conf_monitor_netout_alert (n2arglist *);
 void conf_monitor_diskio_warning (n2arglist *);
 void conf_monitor_diskio_alert (n2arglist *);
+void conf_monitor_iowait_warning (n2arglist *);
+void conf_monitor_iowait_alert (n2arglist *);
 void conf_monitor_default (n2arglist *);
 void conf_alias (n2arglist *);
 void conf_server (n2arglist *);
@@ -584,7 +586,7 @@ void load_config (const char *fname)
 		CONF.servers = NULL;
 	}
 	CONF.logfile = pool_strdup ("/var/log/n2/n2rxd.log");
-	CONF.authlogfile = pool_strdup ("/var/log/n2/n2rxd-auth.log")
+	CONF.authlogfile = pool_strdup ("/var/log/n2/n2rxd-auth.log");
 	CONF.log = LOG_NONE;
 	CONF.listenaddr = 0;
 	CONF.listenport = 444;
