@@ -1482,7 +1482,7 @@ void print_info (netload_info *inf, unsigned int addr)
 	printf ("I/O wait........: %i %%\n", inf->iowait);
 	if (inf->kmemtotal)
 	{
-		printf ("Available RAM...: %.2f MB", ((float)inf->kmemtotal)/1024.0);
+		printf ("Available RAM...: %.2f MB\n", ((float)inf->kmemtotal)/1024.0);
 	}
 	printf ("Free RAM/Swap...: %.2f MB / %.2f MB\n",
 			((float)inf->kmemfree)/1024.0,
