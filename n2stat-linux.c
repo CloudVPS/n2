@@ -328,7 +328,7 @@ void gather_meminfo (netload_info *inf)
 			
 			if (strncmp (buf, "MemTotal:", 9) == 0)
 			{
-				KMEMTOTAL = atoi (buf+9);
+				inf->kmemtotal = KMEMTOTAL = atoi (buf+9);
 			}
 			else if (strncmp (buf, "MemFree:", 8) == 0)
 			{
