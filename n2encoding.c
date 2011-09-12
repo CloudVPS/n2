@@ -63,6 +63,7 @@ void init_netload_info (netload_info *inf)
 	inf->nproc = 0;
 	inf->kmemfree = 0;
 	inf->kswapfree = 0;
+	inf->kmemtotal = 0;
 	inf->netin = 0;
 	inf->netout = 0;
 	inf->nmounts = 0;
@@ -1479,6 +1480,10 @@ void print_info (netload_info *inf, unsigned int addr)
 			 (double) inf->cpu / 2.55,
 			 CPUBAR[inf->cpu >> 4]);
 	printf ("I/O wait........: %i %%\n", inf->iowait);
+	if (inf->kmemtotal)
+	{
+		printf ("Available RAM...: %.2f MB", ((float)inf->kmemtotal)/1024.0);
+	}
 	printf ("Free RAM/Swap...: %.2f MB / %.2f MB\n",
 			((float)inf->kmemfree)/1024.0,
 			((float)inf->kswapfree)/1024.0);
@@ -1670,7 +1675,13 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 			inf->nrun, inf->nproc);
 	
 	printf (" <iowait>%i</iowait>\n", inf->iowait);
-			
+	
+	if (inf->kmemtotal)
+	{
+		printf ("  <mbtotalram>%.2f</mbtotalram>\n",
+								((float)inf->kmemtotal)/1024.0);
+	}
+		
 	printf ("  <mbfreeram>%.2f</mbfreeram>\n",
 			((float)inf->kmemfree)/1024.0);
 			
