@@ -208,12 +208,23 @@ netload_pkt *encode_pkt (netload_info *inf, const char *key)
 	pkt_print8  (pkt, 0x80 | (inf->iowait & 0x7f));
 #endif
 	pkt_print16 (pkt, inf->nproc);
-	
+
+#ifdef N2_ENCODE_LEGACY_FORMAT	
 	if (inf->kmemfree > 0x00ffffff) inf->kmemfree = 0x00ffffff;
 	if (inf->kswapfree > 0x00ffffff) inf->kswapfree = 0x00ffffff;
 	
 	pkt_print24 (pkt, inf->kmemfree);
 	pkt_print24 (pkt, inf->kswapfree);
+#else
+	if (inf->kmemfree > 0x3fffffff) inf->kmemfree = 0x3fffffff;
+	if (inf->kswapfree > 0x3fffffff) inf->kswapfree = 0x3fffffff;
+
+	pkt_print16 (pkt, inf->kmemtotal/4096);
+	pkt_print24 (pkt, inf->kmemfree/64);
+	pkt_print24 (pkt, inf->kswapfree/64);
+#endif
+
+#endif
 	pkt_print32 (pkt, inf->netin);
 	pkt_print32 (pkt, inf->netout);
 	
@@ -478,8 +489,18 @@ int decode_rec_inline (netload_rec *rec, netload_info *dst)
 	}
 
 	dst->nproc		= rec_read16 (rec);
-	dst->kmemfree	= rec_read24 (rec);
-	dst->kswapfree	= rec_read24 (rec);
+
+	if (tmp & 0x80)
+	{
+		dst->kmemtotal = rec_read16 (rec) * 4096;
+		dst->kmemfree = rec_read24 (rec) * 64;
+		dst->kswapfree = rec_read24 (rec) * 64;	
+	}
+	else
+	{
+		dst->kmemfree	= rec_read24 (rec);
+		dst->kswapfree	= rec_read24 (rec);
+	}
 
 	DPRINTF ("hosttime=<%i> nrun=<%i> nproc=<%i> kmemfree=<%i> kswapfree=<%i>\n",
 			 dst->hosttime, dst->nrun, dst->nproc, dst->kmemfree,

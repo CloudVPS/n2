@@ -22,9 +22,19 @@ int32   4       4       4       services    Running services[3]
 int16   2       2       2       uptime      System uptime[2]
 int24   3       3       3       ts          The Unix timestamp
 int8    1       1       1       nrun        the number of running processes
+                                iowait      (if bit 7 is on) iowait in %
+
+[if !(nrun & 0x80)]
 int16   2       2       2       nproc       the number of processes
 int24   3       3       3       kmemfree    free RAM (x1 KB)
 int24   3       3       3       kswapfree   free Swap (x1 KB)
+
+[else]
+int16   2       2       2       nproc       the number of processes
+int16   2       2       2       memavail    server RAM (x4 MB)
+int16   3       3       3       memfree     free RAM (x4 KB)
+int16   3       3       3       swapfree    free Swap (x4 KB)
+
 int32   4       4       4       netin       network traffic in (x 1Kb/s)
 int32   4       4       4       netout      network traffic out (x1 Kb/s)
 int8    1       1       1       nmounts     number of mounts (max 4)
@@ -109,6 +119,7 @@ TYPE   |SIZEMIN|MAX    |TYPICAL|NAME       |DESCRIPTION
 string  1       32      12      mountpoint  path of the volume's mountpoint
 string  1       8       4       fstype      filesystem type
 int16   2       2       2       usage       filesystem utilization (x 0.1%)
+[int16] 0       2       2       size        filesystem size (nmount & 0x80)
         ----    ----    ----
         4       42      18
 

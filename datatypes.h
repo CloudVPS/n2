@@ -227,6 +227,7 @@ typedef struct netload_info_struc
 	unsigned int		 services;
 	unsigned short		 nrun;
 	unsigned short		 nproc;
+	int					 kmemtotal;
 	int					 kmemfree;
 	int					 kswapfree;
 	unsigned int		 netin;		/* total network in  kilobit/s */
