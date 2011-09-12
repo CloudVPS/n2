@@ -224,7 +224,6 @@ netload_pkt *encode_pkt (netload_info *inf, const char *key)
 	pkt_print24 (pkt, inf->kswapfree/64);
 #endif
 
-#endif
 	pkt_print32 (pkt, inf->netin);
 	pkt_print32 (pkt, inf->netout);
 	
