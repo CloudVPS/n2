@@ -32,8 +32,8 @@ int24   3       3       3       kswapfree   free Swap (x1 KB)
 [else]
 int16   2       2       2       nproc       the number of processes
 int16   2       2       2       memavail    server RAM (x4 MB)
-int16   3       3       3       memfree     free RAM (x4 KB)
-int16   3       3       3       swapfree    free Swap (x4 KB)
+int24   3       3       3       memfree     free RAM (x64 KB)
+int24   3       3       3       swapfree    free Swap (x64 KB)
 
 int32   4       4       4       netin       network traffic in (x 1Kb/s)
 int32   4       4       4       netout      network traffic out (x1 Kb/s)
