@@ -1283,6 +1283,9 @@ void daemonize (void)
 				exit (0);
 			}
 			fclose (pidfile);
+			open ("/dev/null", O_RDONLY);
+			open ("/dev/null", O_RDWR);
+			open ("/dev/null", O_RDWR);
 			break;
 		
 		default:
