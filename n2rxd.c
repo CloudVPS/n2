@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
+#include <fcntl.h>
 
 time_t STARTTIME;
 
