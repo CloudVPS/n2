@@ -1605,7 +1605,7 @@ void print_info (netload_info *inf, unsigned int addr)
 	}
 	if (i&3) printf ("\n");
 	printf ("---( EVENT LOG )---------------------------------" SEPARATOR);
-	print_hostlog (addr);
+	print_hostlog (addr, 16);
 	printf ("-------------------------------------------------" SEPARATOR);
 }
 

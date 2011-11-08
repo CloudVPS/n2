@@ -26,7 +26,7 @@ typedef struct n2hostlog_struc
 n2hostlog *load_hostlog (unsigned int);
 void save_hostlog (unsigned int, n2hostlog *);
 void hostlog (unsigned int, status_t o, status_t n, oflag_t, const char *);
-void print_hostlog (unsigned int);
+void print_hostlog (unsigned int, int);
 void print_hostlog_xml (unsigned int);
 
 #endif

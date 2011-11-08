@@ -152,7 +152,7 @@ void make_flag_string (char *flagstr, status_t st, oflag_t oflags)
  * -----------------------------                                             *
  * Loads and prints out the eventlog file for the provided host.             *
 \* ------------------------------------------------------------------------- */
-void print_hostlog (unsigned int addr)
+void print_hostlog (unsigned int addr, int lcount)
 {
 	n2hostlog	*log;
 	int			 crsr;
@@ -165,9 +165,12 @@ void print_hostlog (unsigned int addr)
 	log = load_hostlog (addr);
 	if (! log) return;
 	
+	if (lcount<1) lcount = 64;
+	if (lcount>64) lcount = 64;
+	
 	crsr = (log->pos) & 63;
 	
-	for (count=0; count<64; ++count)
+	for (count=0; count<lcount; ++count)
 	{
 		if ((ti = log->entries[crsr].ts))
 		{
