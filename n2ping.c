@@ -194,6 +194,7 @@ void *ping_send_thread (void *nop)
 	{
 		host = PINGDB.first;
 		if (roundcount < 10) roundcount++;
+		i = 0;
 		
 		/* For each and every host */
 		while (host)
