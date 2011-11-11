@@ -476,6 +476,7 @@ int diskdevice_size_in_gb (const char *devname)
 			{
 				sizebytes = atoll (args->argv[2]);
 				destroy_args (args);
+				fclose (F);
 				return sizebytes/(1024*1024);
 			}
 		}
