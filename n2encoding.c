@@ -1641,6 +1641,7 @@ void print_info_xml (netload_info *inf, unsigned long host, unsigned int dt,
 	printf ("    <diskio>%i</diskio>\n", CHKOFLAG(inf->oflags,OFLAG_DISKIO));
 	printf ("    <diskspace>%i</diskspace>\n", CHKOFLAG(inf->oflags,OFLAG_DISKSPACE));
 	printf ("    <decoding>%i</decoding>\n", CHKOFLAG(inf->oflags,OFLAG_DECODINGERR));
+	printf ("    <iowait>%i</iowait>\n", CHKOFLAG(inf->oflags,OFLAG_IOWAIT));
 	printf ("    <acked>%i</acked>\n", CHKOFLAG(inf->oflags,OFLAG_ACKED));
 	printf ("    <other>%i</other>\n", CHKSTATUSFLAG(inf->status,FLAG_OTHER));
 	printf ("  </flags>\n");
