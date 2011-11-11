@@ -18,7 +18,8 @@ typedef enum {
   KMEMFREE,
   KSWAPFREE,
   KMEMTOTAL,
-  NPROC
+  NPROC,
+  IOWAIT
 } stype;
 
 /* ------------------------------------------------------------------------- *\
@@ -76,6 +77,7 @@ int main (int argc, char *argv[])
 		else if (! strcmp (argv[2], "swap")) { what = KSWAPFREE; divider = 1024.0; }
 		else if (! strcmp (argv[2], "totalmem")) { what = KMEMTOTAL; divider = 1024.0; }
 		else if (! strcmp (argv[2], "nproc")) { what = NPROC; divider = 1.0; }
+		else if (! strcmp (argv[2], "iowait")) { what = IOWAIT; divider = 1.0; }
 	}
 	
 	step = 1;
@@ -162,6 +164,9 @@ int main (int argc, char *argv[])
 						case NPROC:
 							dtotal += inf->nproc; break;
 						
+						case IOWAIT:
+							dtotal += inf->iowait; break;
+						
 						default:
 							break;
 					}
@@ -178,7 +183,8 @@ int main (int argc, char *argv[])
 	}
 	
 	if (what == CPU) max = 256;
-	if (max < 128) max = 128;
+	if (what == IOWAIT) max = 100;
+	else if (max < 128) max = 128;
 	maxdivider = ((double)max) / 128.0;
 
 	printf ("%f\n", ((double) max) / divider);
