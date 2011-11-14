@@ -9,9 +9,8 @@ install:
 	install -b -o root -g root -m 0644 n2txd.example.conf debian/n2txd/etc/n2/
 	install -o root -g root -m 0755 n2txd debian/n2txd/usr/sbin/
 
-	sed s/n2txd/n2rxd/g < debian/extra/n2txd.init > debian/extra/n2rxd.init
 	install -b -o root -g root -m 0755 debian/extra/n2rxd.init debian/n2rxd/etc/init.d/n2rxd
-	rm debian/extra/n2rxd.init
+	install -b -o root -g root -m 0755 debian/extra/n2ping.init debian/n2rxd/etc/init.d/n2rxd
 	install -b -o root -g root -m 0644 n2rxd.example.conf debian/n2rxd/etc/n2/
 	install -b -o root -g root -m 0644 analyze.lua debian/n2rxd/etc/n2/
 	install -b -o root -g root -m 0644 analyze-user.lua debian/n2rxd/etc/n2/analyze-user.lua.example

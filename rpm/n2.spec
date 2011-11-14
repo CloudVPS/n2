@@ -49,9 +49,8 @@ install -b -m 0755 rpm/n2txd.init ${BUILD_ROOT}/etc/init.d/n2txd
 install -b -m 0644 n2txd.example.conf ${BUILD_ROOT}/etc/n2/
 install -m 0755 n2txd ${BUILD_ROOT}/usr/sbin
 
-sed s/n2txd/n2rxd/g < rpm/n2txd.init > rpm/n2rxd.init
 install -b -m 0755 rpm/n2rxd.init ${BUILD_ROOT}/etc/init.d/n2rxd
-rm rpm/n2rxd.init
+install -b -m 0755 rpm/n2ping.init ${BUILD_ROOT}/etc/init.d/n2ping
 install -b -m 0644 n2rxd.example.conf ${BUILD_ROOT}/etc/n2/
 install -b -m 0644 analyze.lua ${BUILD_ROOT}/etc/n2/
 install -b -m 0644 analyze-user.lua ${BUILD_ROOT}/etc/n2/analyze-user.lua.example
@@ -136,6 +135,7 @@ exit 0
 /usr/sbin/n2rxd
 /usr/sbin/n2ping
 /etc/init.d/n2rxd
+/etc/init.d/n2ping
 
 %clean
 rm -rf $RPM_BUILD_ROOT
