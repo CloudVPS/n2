@@ -706,9 +706,10 @@ int main (int argc, char *argv[])
 	}
 	
 	listen_addr.sin_port = htons (CONF.listenport);
+	listen_addr.sin_family = AF_INET;
 	
 	/* Create the socket and bind it */
-	UDPSOCK = socket (AF_INET, SOCK_DGRAM, 0);
+	UDPSOCK = socket (PF_INET, SOCK_DGRAM, 0);
 	if (bind (UDPSOCK,(struct sockaddr *) &listen_addr, sizeof(listen_addr))!= 0)
 	{
 		fprintf (stderr, "%% Error creating udp listener\n");
