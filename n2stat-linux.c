@@ -104,7 +104,7 @@ void gather_init (void)
 		{
 			buf[0] = 0;
 			fgets (buf, 255, F);
-			if (strncmp (buf, "processor", 9) == 0)
+			if (strncasecmp (buf, "processor", 9) == 0)
 			{
 				GLOB.procs.ncpu++;
 			}
@@ -115,6 +115,8 @@ void gather_init (void)
 	{
 		GLOB.procs.ncpu = 1;
 	}
+	
+	if (! GLOB.procs.ncpu) GLOB.procs.ncpu = 1;
 }
 
 /* ------------------------------------------------------------------------- *\
