@@ -1,0 +1,93 @@
+The following configuration statements are supported:
+
+ip bind address <listenaddr> [port <port>]
+user <user>
+group <group>
+log type none|events|malformed|all
+log file <logfile>
+log auth-file <authlogfile>
+service-match procname <procname> [user <user>] [port <port>]
+
+default [no] key <key>
+default [no] contact [<contact>]
+default [no] rtt-warning [<rtt_warning/10>]
+default [no] rtt-alert [<rtt_alert/10>]
+default [no] loadavg-warning [<loadavg_warning>]  	
+default [no] loadavg-alert [<loadavg_alert>]  		
+default [no] loss-warning [<loss_warning>]  		
+default [no] loss-alert [<loss_alert>]  		
+default [no] sockstate-warning [<sock_warning>]  		
+default [no] sockstate-alert [<sock_alert>]  		
+default [no] cpu-warning [<cpu_warning>]  		
+default [no] cpu-alert [<cpu_alert>]  			
+default [no] iowait-warning [<iowait_warning>]  	
+default [no] iowait-alert [<iowait_alert>]  		
+default [no] ram-warning [<ram_warning>]  		
+default [no] ram-alert [<ram_alert>]  			
+default [no] swap-warning [<swap_warning>]  		
+default [no] swap-alert [<swap_alert>]  		
+default [no] netin-warning [<netin_warning>]  		
+default [no] netin-alert [<netin_alert>]  		
+default [no] netout-warning [<netout_warning>]  	
+default [no] netout-alert [<netout_alert>]  		
+default [no] diskio-warning [<diskio_warning>]  	
+default [no] diskio-alert [<diskio_alert>]  		
+default [no] diskspace-warning [<diskspace_warning>]  	
+default [no] diskspace-alert [<diskspace_alert>]
+
+encoding-options 
+encoding-options [no] logins
+encoding-options [no] tcpstat
+encoding-options modstatus <statusurl>
+encoding-options xen
+
+monitor-group <ip> <mask> [no] key <key>
+monitor-group <ip> <mask> [no] contact [<contact>]
+monitor-group <ip> <mask> [no] rtt-warning [<rtt_warning/10>]
+monitor-group <ip> <mask> [no] rtt-alert [<rtt_alert/10>]
+monitor-group <ip> <mask> [no] loadavg-warning [<loadavg_warning>]  	
+monitor-group <ip> <mask> [no] loadavg-alert [<loadavg_alert>]  		
+monitor-group <ip> <mask> [no] loss-warning [<loss_warning>]  		
+monitor-group <ip> <mask> [no] loss-alert [<loss_alert>]  		
+monitor-group <ip> <mask> [no] sockstate-warning [<sock_warning>]  		
+monitor-group <ip> <mask> [no] sockstate-alert [<sock_alert>]  		
+monitor-group <ip> <mask> [no] cpu-warning [<cpu_warning>]  		
+monitor-group <ip> <mask> [no] cpu-alert [<cpu_alert>]  			
+monitor-group <ip> <mask> [no] iowait-warning [<iowait_warning>]  	
+monitor-group <ip> <mask> [no] iowait-alert [<iowait_alert>]  		
+monitor-group <ip> <mask> [no] ram-warning [<ram_warning>]  		
+monitor-group <ip> <mask> [no] ram-alert [<ram_alert>]  			
+monitor-group <ip> <mask> [no] swap-warning [<swap_warning>]  		
+monitor-group <ip> <mask> [no] swap-alert [<swap_alert>]  		
+monitor-group <ip> <mask> [no] netin-warning [<netin_warning>]  		
+monitor-group <ip> <mask> [no] netin-alert [<netin_alert>]  		
+monitor-group <ip> <mask> [no] netout-warning [<netout_warning>]  	
+monitor-group <ip> <mask> [no] netout-alert [<netout_alert>]  		
+monitor-group <ip> <mask> [no] diskio-warning [<diskio_warning>]  	
+monitor-group <ip> <mask> [no] diskio-alert [<diskio_alert>]  		
+monitor-group <ip> <mask> [no] diskspace-warning [<diskspace_warning>]  	
+monitor-group <ip> <mask> [no] diskspace-alert [<diskspace_alert>]
+
+monitor-host <ip> [ignore-loss] [ignore-diskspace]
+
+host-group	<hostgroup> description <description>
+host-group	<hostgroup> [no] member host <ip>
+host-group	<hostgroup> [no] member network <ip> <mask>
+host-group	<hostgroup> [no] notification email address <emailaddr>
+host-group	<hostgroup> [no] notification email subject <emailsubject>
+host-group	<hostgroup> [no] notification email sender <emailfrom>
+host-group	<hostgroup> [no] notification madnotify url <madurl>
+host-group	<hostgroup> [no] notification madnotify username <maduser>
+host-group	<hostgroup> [no] notification madnotify password <madpass>
+host-group	<hostgroup> alert-trigger <trigger>
+
+server	<ipaddr> [port <port>] key  <key>
+
+service	<svc> <name> <owner> <port>
+interface-list	<ifname>*
+iodev-list <devname>*
+hostname <hostname>
+no monitor-group <addr> <mask>
+no host-group <hostgroup>
+
+alias <from_addr> <to_addr>
