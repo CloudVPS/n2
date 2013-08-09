@@ -122,8 +122,6 @@ void send_ping_pkt (unsigned long ip, unsigned int seq)
 	icp->icmp_seq	= (seq & 0x0000ffff);
 	icp->icmp_cksum	= in_checksum ((unsigned short *) icp, HDRLEN+DATALEN);
 	
-	printf ("sending ping to %08x seq=%04x\n", ip, seq & 0xffff);
-	
 	rsize = sendto (icmp_ping_socket, buf, sizeof (buf), 0,
 					(struct sockaddr *) &taddr, sizeof (taddr));
 	
@@ -280,8 +278,6 @@ void *ping_recv_thread (void *nop)
 			icp 	= &pkt.icp;
 			inseq	= icp->icmp_seq;
 			
-			printf ("icmp from %08x seq=%04x", ipaddr, inseq);
-	
 			/* the icmp id for echo replies is not guaranteed to be
 			   echoed from the echo request packet, grsecurity for
 			   instance randomizes it */
@@ -308,31 +304,10 @@ void *ping_recv_thread (void *nop)
 					   
 					if (rtt < 40000)
 					{
-						printf (" rtt=%i\n", rtt);
 						host->rtt = rtt;
 					}
-					else
-					{
-						printf (" !!!! rtt=%i\n", rtt);
-					}
 				}
 			}
-			else
-			{
-				if (icp->icmp_type != ICMP_ECHOREPLY)
-				{
-					printf (": wrong icmp type\n");
-				}
-				else
-				{
-					syslog (LOG_ERR, "ICMP from %08x seq %04x != %04x",
-							ipaddr, inseq, host->seq & 0xffff);
-				}
-			}
-		}
-		else
-		{
-			printf ("icmp from unknown host %08x\n", ipaddr);
 		}
 	}
 }
