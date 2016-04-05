@@ -11,7 +11,7 @@
  * ------------------------                                                  *
  * Utility function to find the next whitespace character inside a string.   *
 \* ------------------------------------------------------------------------- */
-inline char *findspace (char *src)
+char *findspace (char *src)
 {
 	register char *t1;
 	register char *t2;

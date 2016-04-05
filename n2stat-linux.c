@@ -666,7 +666,9 @@ void gather_mounts_getmount (n2arglist *args, netload_info *inf,
 
 	fstype = args->argv[2];
 	if (strcmp (fstype, "proc") &&
-		strncmp (fstype, "dev", 3)) /* not procfs or devfsen */
+		strncmp (fstype, "dev", 3) &&
+		strncmp (fstype, "mqueue", 7) &&
+		strncmp (fstype, "hugetlbfs", 10)) /* not procfs or devfsen */
 	{
 		origindevice = args->argv[0];
 		mountpoint = args->argv[1];
