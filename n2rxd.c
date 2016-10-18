@@ -272,7 +272,9 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 	if (time(NULL) - STARTTIME < 60) isfresh = 1;
 	
 	/* Only consider newer data */
-	if (hosttime > lasttime)
+	if ((hosttime > lasttime) ||
+	    (((hosttime & 0x00ffff00) == 0) &&
+		 ((lasttime & 0x00ffff00) != 0)))
 	{
 		/* Update the timestamp in the cache */
 		hcache_setlast (cache, rhost, hosttime);
@@ -432,19 +434,11 @@ void handle_packet (netload_pkt *pkt, unsigned long rhost,
 	}
 	else /* hosttime > hcache_getlast() */
 	{
-		if (((hosttime & 0x00ffff00) == 0) &&
-			((lasttime & 0x00ffff00) != 0))
-		{
-			/* perfectly normal clock wrap */
-		}
-		else if (hosttime < lasttime)
-		{
-			sprintf (str, "Illegal backwards timestamp, "
-					 "%u < %u",
-					 hosttime,
-					 hcache_getlast (cache, rhost));
-			authlog (rhost, str);
-		}
+        sprintf (str, "Illegal backwards timestamp, "
+                 "%u < %u",
+                 hosttime,
+                 hcache_getlast (cache, rhost));
+        authlog (rhost, str);
 	}
 }
 
